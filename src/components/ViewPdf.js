@@ -5,21 +5,22 @@ import {
   Text,
   ScrollView
 } from 'react-native';
-
+import * as Progress from 'react-native-progress';
 import PDFView from 'react-native-pdf-view';
-import RNFS from 'react-native-fs';
+import RNFetchBlob from 'react-native-fetch-blob';
 
 const pdfDownloadURL = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q1_ENG_2015.pdf';
 
 export default class ViewPdf extends React.Component {
   state = {
     isPdfDownload: false,
+    width: 0,
+    pdfFile: ''
   };
 
   constructor(props) {
     super(props);
     this.pdfView = null;
-    this.pdfPath = RNFS.DocumentDirectoryPath + '/test.pdf'
   }
 
   componentDidMount() {
@@ -27,35 +28,47 @@ export default class ViewPdf extends React.Component {
       fromUrl: pdfDownloadURL,
       toFile: this.pdfPath
     };
-    RNFS.downloadFile(options).promise.then(res => {
-      this.setState({isPdfDownload: true});
-    }).catch(err => {
-      console.log(err);
-    });
+    RNFetchBlob.config({
+            // add this option that makes response data to be stored as a file,
+            // this is much more performant.
+            fileCache : true,
+            path : RNFetchBlob.fs.dirs.DocumentDir + '/test.pdf'
+          })
+          .fetch('GET', pdfDownloadURL , {
+            //some headers ..
+          })
+          .progress((received, total) => {
+              this.setState({
+                width : 200 * (received/total)
+              })
+          })
+          .then((res) => {
+            // the temp file path
+            this.setState({isPdfDownload: true, pdfFile: res.path() });
+            console.log('The file saved to ', res.path())
+          });
   }
 
-  zoom(val = 1) {
-    this.pdfView && setTimeout(() => {
-      this.pdfView.setNativeProps({zoom: val});
-    }, 1000);
-  }
+  // zoom(val = 2.5) {
+  //   this.pdfView && setTimeout(() => {
+  //     this.pdfView.setNativeProps({width: val});
+  //   }, 1000);
+  // }
 
   render() {
     if (!this.state.isPdfDownload) {
       return (
         <View style={styles.container}>
-          <Text>Downloading</Text>
+          <Progress.Bar progress={this.state.width} width={200} />
         </View>
       );
     }
     return (
-
         <PDFView ref={(pdf)=>{this.pdfView = pdf;}}
                  key="sop"
-                 path={this.pdfPath}
+                 path={this.state.pdfFile}
                  onLoadComplete={(pageCount)=>{
                           console.log(`total page count: ${pageCount}`);
-                          this.zoom();
                        }}
                  style={styles.pdf}/>
     )

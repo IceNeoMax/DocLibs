@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet,Text } from 'react-native';
 import { TabViewAnimated, TabBar } from 'react-native-tab-view';
 import GridView from './GridView';
 import GridViewWithSection from './GridViewWithSection';
-import ViewPdf from './ViewPdf';
+// import ViewPdf from './ViewPdf';
 
 const styles = StyleSheet.create({
   container: {
@@ -18,7 +18,6 @@ export default class TabViewExample extends Component {
     routes: [
       { key: '1', title: 'First' },
       { key: '2', title: 'Second' },
-      { key: '3', title: 'View pdf' },
     ],
   };
 
@@ -44,12 +43,6 @@ export default class TabViewExample extends Component {
         <GridViewWithSection />
         </View>
       );
-      case '3':
-        return (
-          <View style={[styles.page]}>
-          <ViewPdf />
-          </View>
-        );
     default:
       return null;
     }
