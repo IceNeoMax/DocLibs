@@ -6,7 +6,7 @@ import {
   View,
   Image
 } from 'react-native';
-import { Container, Content, ListItem } from 'native-base';
+// import { Container, Content, ListItem } from 'native-base';
 
 class GridViewWithSection extends Component {
 
@@ -23,9 +23,7 @@ class GridViewWithSection extends Component {
   renderRow(rowData) {
     return (
       <View>
-        <ListItem itemDivider>
-            <Text>{rowData}</Text>
-        </ListItem>
+        
         <View style={styles.list}>
           <View style={styles.row}>
             <Image
@@ -77,36 +75,36 @@ class GridViewWithSection extends Component {
 
   render() {
     return (
-      <Container>
-                <Content>
-                    <ListItem itemDivider>
-                        <Text>2015</Text>
-                    </ListItem>
-                    <View style={styles.row}>
-                      <Image
-                        style={styles.thumb}
-                        source={{ uri: 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/Q1_ENG_2015_63_90_3x.jpg' }}
-                      >
-                      <Text style={styles.text}>
-                        Q1 2015
-                      </Text>
-                      </Image>
-                    </View>
-                    <ListView
-
-                      dataSource={this.state.dataSource}
-                      renderRow={(rowData) => this.renderRow(rowData)}
-                    />
-                </Content>
-            </Container>
-      // <View style={{ flex: 1 }}>
-      //     <ListView
-      //       contentContainerStyle={styles.list}
-      //       dataSource={this.state.dataSource}
-      //       renderRow={this.renderRow}
-      //       renderSectionHeader={this.renderSectionHeader}
-      //     />
-      // </View>
+      // <Container>
+            //     <Content>
+            //         <ListItem itemDivider>
+            //             <Text>2015</Text>
+            //         </ListItem>
+            //         <View style={styles.row}>
+            //           <Image
+            //             style={styles.thumb}
+            //             source={{ uri: 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/Q1_ENG_2015_63_90_3x.jpg' }}
+            //           >
+            //           <Text style={styles.text}>
+            //             Q1 2015
+            //           </Text>
+            //           </Image>
+            //         </View>
+            //         <ListView
+            //
+            //           dataSource={this.state.dataSource}
+            //           renderRow={(rowData) => this.renderRow(rowData)}
+            //         />
+            //     </Content>
+            // </Container>
+      <View style={{ flex: 1 }}>
+          <ListView
+            contentContainerStyle={styles.list}
+            dataSource={this.state.dataSource}
+            renderRow={this.renderRow}
+            renderSectionHeader={this.renderSectionHeader}
+          />
+      </View>
     );
   }
 }
