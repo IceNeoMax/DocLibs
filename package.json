@@ -17,7 +17,7 @@
     "react-native-progress": "^3.2.0",
     "react-native-share": "^1.0.19",
     "react-native-slider": "^0.9.1",
-    "react-native-pdf-view": "git+https://github.com/cnjon/react-native-pdf-view.git",
+    "react-native-pdf-view": "^0.3.2",
     "react-native-social-share": "^1.0.0",
     "react-native-tab-view": "0.0.55",
     "react-native-vector-icons": "^4.0.0",
