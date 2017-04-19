@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   Image,
   Modal,
-  AsyncStorage
+  AsyncStorage,
+  Platform,
+  WebView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon1 from 'react-native-vector-icons/Ionicons';
@@ -130,6 +132,7 @@ class GridView extends Component {
           this.setState({dataSource: ds.cloneWithRows(temp)});
       })
       .then((res) => {
+        console.log(res);
         this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1}  });
         AsyncStorage.getItem('pdfPath')
           .then(res => {
@@ -139,7 +142,7 @@ class GridView extends Component {
               if (storeval.year==data.year) storeval.stored = this.state.dataPdf.stored;
               temp.push(storeval);
             })
-            // console.log(temp);
+            // console.log(this.state.dataPdf.stored);
             this.setState({localData:temp});
             let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
             this.setState({dataSource: ds.cloneWithRows(temp)});
@@ -149,7 +152,9 @@ class GridView extends Component {
 
     }
     cancelDownload = ()=>{
-      downloading.cancel((err, taskId)=>console.log(err,taskId));
+      downloading.cancel(
+        // (err, taskId)=>console.log(err,taskId)
+      );
       this.setModalVisible(!this.state.modalVisible);
       let temp = [];
       this.state.localData.map(localres=>{
@@ -177,6 +182,7 @@ class GridView extends Component {
           </View>
         );
       }
+      if(Platform.OS === 'android')
         return (
             <PDFView ref={(pdf)=>{this.pdfView = pdf;}}
                      key="sop"
@@ -185,6 +191,12 @@ class GridView extends Component {
                               console.log(`total page count: ${pageCount}`);
                            }}
                      style={styles.pdf}/>
+        )
+        return(
+          <WebView
+            source={{uri: this.state.dataPdf.stored}}
+            style={{marginTop: 20}}
+          />
         )
     }
 
