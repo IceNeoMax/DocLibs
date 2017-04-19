@@ -27,7 +27,6 @@ import {
 const basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/';
 let downloading = null;
 class GridView extends Component {
-
   componentWillMount() {
     const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.state = {
@@ -110,50 +109,66 @@ class GridView extends Component {
         }
       );
     }
-  downloadPdf = (data) => {
-    downloading  = RNFetchBlob.fetch('GET', 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q4_ENG_2015.pdf' , {
-        //some headers ..
-        //basePdf+data.pdf
-      });
+    downloadPdf= (data) =>{
       RNFetchBlob.config({
-        fileCache : true,
-        path : RNFetchBlob.fs.dirs.DocumentDir + '/' +data.pdf
-      });
-      downloading.progress((received, total) => {
-          let temp = [];
-          let width= (received/total);
-          this.state.localData.map(localres=>{
-            if (localres.year==data.year) localres.width = width;
-            temp.push(localres);
-          });
-          // console.log(width);
-          this.setState({localData:temp, width:width});
-          let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-          this.setState({dataSource: ds.cloneWithRows(temp)});
-      })
-      .then((res) => {
-        console.log(res.path());
-        this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1}  });
-        AsyncStorage.getItem('pdfPath')
-          .then(res => {
-            let temp = [];
-            JSON.parse(res).map(storeval=>{
-              // console.log(storeval);
-              if (storeval.year==data.year) storeval.stored = this.state.dataPdf.stored;
-              temp.push(storeval);
+              // add this option that makes response data to be stored as a file,
+              // this is much more performant.
+              fileCache : true,
+              path : RNFetchBlob.fs.dirs.DocumentDir + '/test.pdf'
             })
-            // console.log(this.state.dataPdf.stored);
-            this.setState({localData:temp});
-            let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-            this.setState({dataSource: ds.cloneWithRows(temp)});
-            AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
-        });
-      });
-
+            .fetch('GET', 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q1_ENG_2015.pdf' , {
+              //some headers ..
+            }).then((res) => {
+              // the temp file path
+              // this.setState({isPdfDownload: true, pdfFile: res.path() });
+              console.log('The file saved to ', res.path())
+            });
     }
+  // downloadPdf = (data) => {
+  //     RNFetchBlob.config({
+  //       fileCache : true,
+  //       path : RNFetchBlob.fs.dirs.DocumentDir + '/' +data.pdf
+  //     });
+  //     downloading  = RNFetchBlob.fetch('GET', 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q4_ENG_2015.pdf' , {
+  //         //some headers ..
+  //         //basePdf+data.pdf
+  //       });
+  //     downloading.progress((received, total) => {
+  //         let temp = [];
+  //         let width= (received/total);
+  //         this.state.localData.map(localres=>{
+  //           if (localres.year==data.year) localres.width = width;
+  //           temp.push(localres);
+  //         });
+  //         // console.log(width);
+  //         this.setState({localData:temp, width:width});
+  //         let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+  //         this.setState({dataSource: ds.cloneWithRows(temp)});
+  //     })
+  //     .then((res) => {
+  //       // console.log(res);
+  //       this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1}  });
+  //       AsyncStorage.getItem('pdfPath')
+  //         .then(res => {
+  //           let temp = [];
+  //           JSON.parse(res).map(storeval=>{
+  //             // console.log(storeval);
+  //             if (storeval.year==data.year) storeval.stored = this.state.dataPdf.stored;
+  //             temp.push(storeval);
+  //           })
+  //           // console.log(this.state.dataPdf.stored);
+  //           this.setState({localData:temp});
+  //           let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+  //           this.setState({dataSource: ds.cloneWithRows(temp)});
+  //           AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
+  //       });
+  //       console.log('The file saved to ', res.path());
+  //     });
+  //
+  //   }
     cancelDownload = ()=>{
       downloading.cancel(
-        // (err, taskId)=>console.log(err,taskId)
+        (err, taskId)=>console.log(err,taskId)
       );
       this.setModalVisible(!this.state.modalVisible);
       let temp = [];
@@ -192,12 +207,12 @@ class GridView extends Component {
                            }}
                      style={styles.pdf}/>
         )
-        return(
-          <WebView
-            source={{uri: this.state.dataPdf.stored}}
-            style={{marginTop: 20}}
-          />
-        )
+        // return(
+        //   <WebView
+        //     source={{uri: this.state.dataPdf.stored}}
+        //     style={{marginTop: 20}}
+        //   />
+        // )
     }
 
   renderRow = (rowData) => {

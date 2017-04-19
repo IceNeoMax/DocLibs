@@ -39,7 +39,7 @@ export default class ViewPdf extends React.Component {
           })
           .progress((received, total) => {
               this.setState({
-                width : 200 * (received/total)
+                width : (received/total)
               })
           })
           .then((res) => {
