@@ -111,7 +111,7 @@ class GridView extends Component {
       );
     }
   downloadPdf = (data) => {
-    downloading  = RNFetchBlob.fetch('GET', basePdf+data.pdf , {
+    downloading  = RNFetchBlob.fetch('GET', 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q4_ENG_2015.pdf' , {
         //some headers ..
         //basePdf+data.pdf
       });
@@ -132,7 +132,7 @@ class GridView extends Component {
           this.setState({dataSource: ds.cloneWithRows(temp)});
       })
       .then((res) => {
-        console.log(res);
+        console.log(res.path());
         this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1}  });
         AsyncStorage.getItem('pdfPath')
           .then(res => {
