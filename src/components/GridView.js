@@ -212,34 +212,68 @@ class GridView extends Component {
           <WebView source={{uri: this.state.dataPdf.stored}}/>
         )
     }
-
-  renderRow = (rowData) => {
-    // console.log(rowData);
-    // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_2009_63_90_3x.jpg';
-    let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_'+rowData.year+'_63_90_3x.jpg';
-    // let basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/'+rowData.pdf;
-    return (
-      <View style={styles.row}>
-      {(rowData.width === 0||rowData.width === 1) ?<TouchableHighlight onPress={()=>{
+    // {(rowData.stored!='')?<Icon1 name="md-checkmark" size={20} color="#228b22"
+    //  style={{
+    //    alignSelf:'center', width:20, height:20, paddingLeft:2,
+    //    borderRadius:20 ,borderWidth:1, borderColor:'#228b22', backgroundColor:'#7fff00',
+    //    position:'absolute', top:3, right:3}}/>:null}
+  //   {(rowData.width === 0||rowData.width === 1)
+  //    ?
+  //  // (rowData.stored!='')
+  //  <TouchableHighlight onPress={()=>{
+  //  this.setState({dataPdf:rowData});
+  //  this.refs.modal3.open();
+  //  }}>
+  //    <Image
+  //      ref='thumb'
+  //      style={styles.thumb}
+  //      source={{ uri: baseUrl }}
+  //    >
+  //    {this.renderIcon(rowData.stored)}
+  //    <Text style={styles.text}>
+  //      {rowData.year}
+  //    </Text>
+  //    </Image>
+  //  </TouchableHighlight>
+   //
+  //  :<Progress.Bar progress={rowData.width} width={50} />
+  //  }
+    renderIcon(stored,deleteIcon){
+      if (stored!=''&&deleteIcon==true)
+      return <Icon1 name="md-checkmark" size={20} color="#228b22" style={styles.imageIconCheck}/>
+      return <Icon name="minus" size={20} color="#fff" style={styles.imageIconMinus}/>
+    }
+    renderImage(width,rowData,baseUrl){
+      // console.log(rowData);
+      if(width === 0||width === 1)
+      return(
+        <TouchableHighlight onPress={()=>{
         this.setState({dataPdf:rowData});
         this.refs.modal3.open();
-      }}>
-
+        }}>
           <Image
             ref='thumb'
             style={styles.thumb}
             source={{ uri: baseUrl }}
           >
-          {(rowData.stored!='') ? <Icon1 name="md-checkmark" size={20} color="#228b22"
-           style={{alignSelf:'center', width:20, height:20, paddingLeft:2,  borderRadius:20 ,borderWidth:1, borderColor:'#228b22', backgroundColor:'#7fff00', position:'absolute', top:3, right:3}}/>
-          : null }
           <Text style={styles.text}>
             {rowData.year}
           </Text>
           </Image>
         </TouchableHighlight>
-        :<Progress.Bar progress={rowData.width} width={50} />
-        }
+      )
+      return <Progress.Bar progress={rowData.width} width={50} />
+    }
+  renderRow = (rowData) => {
+    // console.log(rowData);
+    // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_2009_63_90_3x.jpg';
+    let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_'+rowData.year+'_63_90_3x.jpg';
+    // let basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/'+rowData.pdf;
+    // console.log(rowData);
+    return (
+      <View style={styles.row}>
+        {this.renderImage(rowData.width,rowData,baseUrl)}
+        {this.renderIcon(rowData.stored)}
       </View>
     );
   }
@@ -253,7 +287,6 @@ class GridView extends Component {
        "social": "email"
     };
     return (
-
       <View style={{ flex: 1 }}>
           <ListView
             initialListSize={20}
@@ -369,6 +402,32 @@ const styles = StyleSheet.create({
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'flex-end',
+    },
+    imageIconCheck:{
+      alignSelf:'center',
+      width:20,
+      height:20,
+      paddingLeft:2,
+      borderRadius:20 ,
+      borderWidth:1,
+      borderColor:'#228b22',
+      backgroundColor:'#7fff00',
+      position:'absolute',
+      top:8,
+      right:20
+    },
+    imageIconMinus:{
+      alignSelf:'center',
+      width:20,
+      height:20,
+      paddingLeft:2,
+      borderRadius:20 ,
+      borderWidth:1,
+      borderColor:'#ff0000',
+      backgroundColor:'#dc143c',
+      position:'absolute',
+      top:8,
+      right:20
     },
     modal3: {
       padding: 10,
