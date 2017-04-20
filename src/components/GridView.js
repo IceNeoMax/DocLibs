@@ -31,8 +31,8 @@ class GridView extends Component {
     const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.state = {
       dataPdf:{},
-      localData:[
-      ],
+      localData:[],
+      needDelete:null,
       isPdfDownload: false,
       width: 0,
       isOpen: false,
@@ -62,23 +62,23 @@ class GridView extends Component {
       //  console.log(res);
       if (res == null) {
         let temp= [
-          {year:2016, pdf: 'AR_ENG_2016.pdf', stored:'', width:0},
-          {year:2015, pdf: 'AR_ENG_2015.pdf', stored:'', width:0},
-          {year:2014, pdf: 'AR_ENG_2014.pdf', stored:'', width:0},
-          {year:2013, pdf: 'AR_ENG_2013.pdf', stored:'', width:0},
-          {year:2012, pdf: 'AR_ENG_2012.pdf', stored:'', width:0},
-          {year:2011, pdf: 'AR_ENG_2011.pdf', stored:'', width:0},
-          {year:2010, pdf: 'AR_ENG_2010.pdf', stored:'', width:0},
-          {year:2009, pdf: 'AR_ENG_2009.pdf', stored:'', width:0},
-          {year:2008, pdf: 'AR_ENG_2008.pdf', stored:'', width:0},
-          {year:2007, pdf: 'AR_ENG_2007.pdf', stored:'', width:0},
-          {year:2006, pdf: 'AR_ENG_2006.pdf', stored:'', width:0},
-          {year:2005, pdf: 'AR_ENG_2005.pdf', stored:'', width:0},
-          {year:2004, pdf: 'AR_ENG_2004.pdf', stored:'', width:0},
-          {year:2003, pdf: 'AR_ENG_2003.pdf', stored:'', width:0},
-          {year:2002, pdf: 'AR_ENG_2002.pdf', stored:'', width:0},
-          {year:2001, pdf: 'AR_ENG_2001.pdf', stored:'', width:0},
-          {year:2000, pdf: 'AR_ENG_2000.pdf', stored:'', width:0},
+          {year:2016, pdf: 'AR_ENG_2016.pdf', stored:'', width:0,minus:false},
+          {year:2015, pdf: 'AR_ENG_2015.pdf', stored:'', width:0,minus:false},
+          {year:2014, pdf: 'AR_ENG_2014.pdf', stored:'', width:0,minus:false},
+          {year:2013, pdf: 'AR_ENG_2013.pdf', stored:'', width:0,minus:false},
+          {year:2012, pdf: 'AR_ENG_2012.pdf', stored:'', width:0,minus:false},
+          {year:2011, pdf: 'AR_ENG_2011.pdf', stored:'', width:0,minus:false},
+          {year:2010, pdf: 'AR_ENG_2010.pdf', stored:'', width:0,minus:false},
+          {year:2009, pdf: 'AR_ENG_2009.pdf', stored:'', width:0,minus:false},
+          {year:2008, pdf: 'AR_ENG_2008.pdf', stored:'', width:0,minus:false},
+          {year:2007, pdf: 'AR_ENG_2007.pdf', stored:'', width:0,minus:false},
+          {year:2006, pdf: 'AR_ENG_2006.pdf', stored:'', width:0,minus:false},
+          {year:2005, pdf: 'AR_ENG_2005.pdf', stored:'', width:0,minus:false},
+          {year:2004, pdf: 'AR_ENG_2004.pdf', stored:'', width:0,minus:false},
+          {year:2003, pdf: 'AR_ENG_2003.pdf', stored:'', width:0,minus:false},
+          {year:2002, pdf: 'AR_ENG_2002.pdf', stored:'', width:0,minus:false},
+          {year:2001, pdf: 'AR_ENG_2001.pdf', stored:'', width:0,minus:false},
+          {year:2000, pdf: 'AR_ENG_2000.pdf', stored:'', width:0,minus:false},
         ];
         AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
         this.setState({
@@ -92,7 +92,6 @@ class GridView extends Component {
             dataSource:this.state.dataSource.cloneWithRows(JSON.parse(res)),
           });
         // console.log("temp");
-
       }
     });
   }
@@ -109,22 +108,7 @@ class GridView extends Component {
         }
       );
     }
-    // downloadPdf= (data) =>{
-    //   downloading= RNFetchBlob.config({
-    //           // add this option that makes response data to be stored as a file,
-    //           // this is much more performant.
-    //           fileCache : true,
-    //           path : RNFetchBlob.fs.dirs.DocumentDir + '/' +data.pdf
-    //         })
-    //       .fetch('GET', 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q1_ENG_2015.pdf' , {
-    //         //some headers ..
-    //       });
-    //       downloading.then((res) => {
-    //         // the temp file path
-    //         // this.setState({isPdfDownload: true, pdfFile: res.path() });
-    //         console.log('The file saved to ', res.path())
-    //       });
-    // }
+
   downloadPdf = (data) => {
     downloading =  RNFetchBlob.config({
         fileCache : true,
@@ -142,19 +126,21 @@ class GridView extends Component {
             temp.push(localres);
           });
           // console.log(width);
-          this.setState({localData:temp, width:width});
+          if (data.year==this.state.dataPdf.year) this.setState({width});
+          this.setState({localData:temp});
           let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
           this.setState({dataSource: ds.cloneWithRows(temp)});
       })
       .then((res) => {
         // console.log(res);
-        this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1}  });
+        this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1,minus:false}  });
         AsyncStorage.getItem('pdfPath')
           .then(res => {
             let temp = [];
             JSON.parse(res).map(storeval=>{
               // console.log(storeval);
-              if (storeval.year==data.year) storeval.stored = this.state.dataPdf.stored;
+              if (storeval.year==data.year)
+              {storeval.stored = this.state.dataPdf.stored;storeval.width=1;}
               temp.push(storeval);
             })
             // console.log(this.state.dataPdf.stored);
@@ -167,103 +153,148 @@ class GridView extends Component {
       });
 
     }
-    cancelDownload = ()=>{
-      downloading.cancel(
-        // (err, taskId)=>console.log(err,taskId)
-      );
-      this.setModalVisible(!this.state.modalVisible);
-      let temp = [];
-      this.state.localData.map(localres=>{
-        if (localres.year==this.state.dataPdf.year) localres.width = 0;
-        temp.push(localres);
+  cancelDownload = ()=>{
+    downloading.cancel(
+      // (err, taskId)=>console.log(err,taskId)
+    );
+    this.setModalVisible(!this.state.modalVisible);
+    let temp = [];
+    this.state.localData.map(localres=>{
+      if (localres.year==this.state.dataPdf.year) localres.width = 0;
+      temp.push(localres);
+    });
+    this.setState({localData:temp, width:0});
+    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+    this.setState({dataSource: ds.cloneWithRows(temp)});
+  }
+  deleteFile = () =>{
+    let temp = [];
+    this.state.localData.map(localres=>{
+      this.state.needDelete.map(del=>{
+        if (localres.year==del.year) {localres.stored = '';localres.minus = false;localres.width = 0;}
       });
-      this.setState({localData:temp, width:0});
-      let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-      this.setState({dataSource: ds.cloneWithRows(temp)});
-    }
-
-    renderPdf() {
-      if (this.state.dataPdf.stored=='') {
-        return (
-          <View style={styles.groundPdfDownload}>
-            <Progress.Bar style={{marginTop: 200}} progress={this.state.width} width={200} />
-            <View style={{flexDirection: 'column'}}>
-              <TouchableOpacity onPress={()=>this.setModalVisible(!this.state.modalVisible)}>
-                <Text style={{padding:10, color: 'blue',fontSize:18}}> Move to Background</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={this.cancelDownload}>
-                <Text style={{padding:10, color: 'blue',fontSize:18,  textAlign: 'center',}}> Cancel</Text>
-              </TouchableOpacity>
-            </View>
+      temp.push(localres);
+    })
+    this.setState({localData:temp, needDelete:null});
+    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+    this.setState({dataSource: ds.cloneWithRows(temp)});
+    AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
+  }
+  cancelAllDelete= ()=>{
+    let temp = [];
+    this.state.localData.map(localres=>{
+       localres.minus = false;
+      temp.push(localres);
+    });
+    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+    this.setState({dataSource: ds.cloneWithRows(temp), needDelete:null});
+  }
+  renderPdf() {
+    if (this.state.dataPdf.stored=='') {
+      return (
+        <View style={styles.groundPdfDownload}>
+          <Progress.Bar style={{marginTop: 200}} progress={this.state.width} width={200} />
+          <View style={{flexDirection: 'column'}}>
+            <TouchableOpacity onPress={()=>this.setModalVisible(!this.state.modalVisible)}>
+              <Text style={{padding:10, color: 'blue',fontSize:18}}> Move to Background</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={this.cancelDownload}>
+              <Text style={{padding:10, color: 'blue',fontSize:18,  textAlign: 'center',}}> Cancel</Text>
+            </TouchableOpacity>
           </View>
-        );
-      }
-      if(Platform.OS === 'android')
-        return (
-            <PDFView ref={(pdf)=>{this.pdfView = pdf;}}
-                     key="sop"
-                     path={this.state.dataPdf.stored}
-                     onLoadComplete={(pageCount)=>{
-                              console.log(`total page count: ${pageCount}`);
-                           }}
-                     style={styles.pdf}/>
-        )
-        return(
-          <WebView source={{uri: this.state.dataPdf.stored}}/>
-        )
+        </View>
+      );
     }
-    // {(rowData.stored!='')?<Icon1 name="md-checkmark" size={20} color="#228b22"
-    //  style={{
-    //    alignSelf:'center', width:20, height:20, paddingLeft:2,
-    //    borderRadius:20 ,borderWidth:1, borderColor:'#228b22', backgroundColor:'#7fff00',
-    //    position:'absolute', top:3, right:3}}/>:null}
-  //   {(rowData.width === 0||rowData.width === 1)
-  //    ?
-  //  // (rowData.stored!='')
-  //  <TouchableHighlight onPress={()=>{
-  //  this.setState({dataPdf:rowData});
-  //  this.refs.modal3.open();
-  //  }}>
-  //    <Image
-  //      ref='thumb'
-  //      style={styles.thumb}
-  //      source={{ uri: baseUrl }}
-  //    >
-  //    {this.renderIcon(rowData.stored)}
-  //    <Text style={styles.text}>
-  //      {rowData.year}
-  //    </Text>
-  //    </Image>
-  //  </TouchableHighlight>
-   //
-  //  :<Progress.Bar progress={rowData.width} width={50} />
-  //  }
-    renderIcon(stored,deleteIcon){
-      if (stored!=''&&deleteIcon==true)
-      return <Icon1 name="md-checkmark" size={20} color="#228b22" style={styles.imageIconCheck}/>
-      return <Icon name="minus" size={20} color="#fff" style={styles.imageIconMinus}/>
-    }
-    renderImage(width,rowData,baseUrl){
-      // console.log(rowData);
-      if(width === 0||width === 1)
-      return(
-        <TouchableHighlight onPress={()=>{
-        this.setState({dataPdf:rowData});
-        this.refs.modal3.open();
-        }}>
-          <Image
-            ref='thumb'
-            style={styles.thumb}
-            source={{ uri: baseUrl }}
-          >
-          <Text style={styles.text}>
-            {rowData.year}
-          </Text>
-          </Image>
-        </TouchableHighlight>
+    if(Platform.OS === 'android')
+      return (
+          <PDFView ref={(pdf)=>{this.pdfView = pdf;}}
+                   key="sop"
+                   path={this.state.dataPdf.stored}
+                   onLoadComplete={(pageCount)=>{
+                            console.log(`total page count: ${pageCount}`);
+                         }}
+                   style={styles.pdf}/>
       )
-      return <Progress.Bar progress={rowData.width} width={50} />
-    }
+      return(
+        <WebView source={{uri: this.state.dataPdf.stored}}/>
+      )
+  }
+  renderIcon(rowData){
+    // console.log(rowData);
+    if (rowData.stored!=''&& rowData.minus== false&& rowData.width== 1)
+      return (
+        <Icon1 onPress={()=>{
+          let temp= [];
+          let temp2 =this.state.needDelete;
+          let flag = false;
+          if (temp2 === null) {
+            temp2 = [];
+            temp2.push(rowData);
+            // console.log(temp2);
+          }
+          else {
+            // console.log(temp2);
+            this.state.needDelete.map(localres=>{
+              if (localres.year!=rowData.year) flag=true;
+            })
+            if(flag) temp2.push(rowData);
+          }
+
+          // console.log(temp2,rowData.year);
+          this.state.localData.map(localres=>{
+            if (localres.year==rowData.year) localres.minus = true;
+            temp.push(localres);
+          });
+          this.setState({localData:temp, needDelete:temp2});
+          let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+          this.setState({dataSource: ds.cloneWithRows(temp)});
+        }}
+        name="md-checkmark" size={20} color="#228b22" style={styles.imageIconCheck}/>
+      );
+      else if (rowData.stored!=''&& rowData.minus== true)
+       return(
+        <Icon onPress={()=>{
+            let temp= [];
+            this.state.localData.map(localres=>{
+              if (localres.year==rowData.year) localres.minus = false;
+              temp.push(localres);
+            });
+            if(this.state.needDelete.length == 1) this.setState({needDelete:null});
+            else{
+              let temp2=[];
+              this.state.needDelete.map(localres=>{
+                if (localres.year!=rowData.year) temp2.push(localres);
+              });
+              this.setState({needDelete:temp2});
+            }
+            this.setState({localData:temp});
+            let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+            this.setState({dataSource: ds.cloneWithRows(temp)});
+        }}
+        name="minus" size={20} color="#fff" style={styles.imageIconMinus}/>
+      )
+  }
+  renderImage(width,rowData,baseUrl){
+      // console.log(rowData);
+    if(width === 0||width === 1)
+    return(
+      <TouchableHighlight onPress={()=>{
+      this.setState({dataPdf:rowData});
+      this.refs.modal3.open();
+      }}>
+        <Image
+          ref='thumb'
+          style={styles.thumb}
+          source={{ uri: baseUrl }}
+        >
+        <Text style={styles.text}>
+          {rowData.year}
+        </Text>
+        </Image>
+      </TouchableHighlight>
+    )
+    return <Progress.Bar progress={rowData.width} width={50} />
+  }
   renderRow = (rowData) => {
     // console.log(rowData);
     // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_2009_63_90_3x.jpg';
@@ -273,7 +304,7 @@ class GridView extends Component {
     return (
       <View style={styles.row}>
         {this.renderImage(rowData.width,rowData,baseUrl)}
-        {this.renderIcon(rowData.stored)}
+        {this.renderIcon(rowData)}
       </View>
     );
   }
@@ -294,12 +325,20 @@ class GridView extends Component {
             dataSource={this.state.dataSource}
             renderRow={(rowData) => this.renderRow(rowData)}
           />
+          {(this.state.needDelete!=null)?<View style={{ flexDirection: 'column',}}>
+            <TouchableOpacity onPress={this.deleteFile}>
+              <Text style={{textAlign: 'center', fontSize:20, color:'blue', paddingVertical:15}}>Delete</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={this.cancelAllDelete}>
+              <Text style={{textAlign: 'center', fontSize:20, color:'blue', paddingVertical:15}}>Cancel</Text>
+            </TouchableOpacity>
+          </View>:null}
           <Modal1 style={[styles.modal, styles.modal3]} position={"center"} ref={"modal3"} isDisabled={this.state.isDisabled}>
             <Text style={{fontSize:22,margin:5, marginBottom:10}}
             onPress={() => {
               this.refs.modal3.close();
                this.setModalVisible(!this.state.modalVisible);
-              this.setState({ isOpen: true});
+              this.setState({ isOpen: true, width:0});
               //  console.log(this.state.dataPdf);
               if(this.state.dataPdf.stored=='')
                 this.downloadPdf(this.state.dataPdf);
@@ -335,7 +374,7 @@ class GridView extends Component {
           </Modal>
 
           <Modal1 style={[styles.modal, styles.modal4]} position={'bottom'} ref={'modal4'}>
-          <Text>Share 'XXX' via</Text>
+          <Text>Share {this.state.dataPdf.pdf} via</Text>
           <View style={styles.sharingPic}>
             <TouchableOpacity onPress={()=>{
                 Share.open(shareOptions);
@@ -413,21 +452,20 @@ const styles = StyleSheet.create({
       borderColor:'#228b22',
       backgroundColor:'#7fff00',
       position:'absolute',
-      top:8,
-      right:20
+      top:0,
+      right:5
     },
     imageIconMinus:{
       alignSelf:'center',
       width:20,
       height:20,
-      paddingLeft:2,
       borderRadius:20 ,
       borderWidth:1,
       borderColor:'#ff0000',
       backgroundColor:'#dc143c',
       position:'absolute',
-      top:8,
-      right:20
+      top:0,
+      right:5
     },
     modal3: {
       padding: 10,
