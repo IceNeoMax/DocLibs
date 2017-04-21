@@ -108,8 +108,12 @@ class GridView extends Component {
         }
       );
     }
-
+  resetListView = (temp) => {
+    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+    this.setState({dataSource: ds.cloneWithRows(temp)});
+  }
   downloadPdf = (data) => {
+
     downloading =  RNFetchBlob.config({
         fileCache : true,
         path : RNFetchBlob.fs.dirs.DocumentDir + '/' +data.pdf
@@ -128,12 +132,12 @@ class GridView extends Component {
           // console.log(width);
           if (data.year==this.state.dataPdf.year) this.setState({width});
           this.setState({localData:temp});
-          let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-          this.setState({dataSource: ds.cloneWithRows(temp)});
+          this.resetListView(temp);
       })
       .then((res) => {
         // console.log(res);
-        this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1,minus:false}  });
+
+        this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1,minus:false},width:0  });
         AsyncStorage.getItem('pdfPath')
           .then(res => {
             let temp = [];
@@ -145,8 +149,7 @@ class GridView extends Component {
             })
             // console.log(this.state.dataPdf.stored);
             this.setState({localData:temp});
-            let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-            this.setState({dataSource: ds.cloneWithRows(temp)});
+            this.resetListView(temp);
             AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
         });
         // console.log('The file saved to ', res.path());
@@ -164,8 +167,7 @@ class GridView extends Component {
       temp.push(localres);
     });
     this.setState({localData:temp, width:0});
-    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-    this.setState({dataSource: ds.cloneWithRows(temp)});
+    this.resetListView(temp);
   }
   deleteFile = () =>{
     let temp = [];
@@ -176,8 +178,7 @@ class GridView extends Component {
       temp.push(localres);
     })
     this.setState({localData:temp, needDelete:null});
-    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-    this.setState({dataSource: ds.cloneWithRows(temp)});
+    this.resetListView(temp);
     AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
   }
   cancelAllDelete= ()=>{
@@ -186,11 +187,11 @@ class GridView extends Component {
        localres.minus = false;
       temp.push(localres);
     });
-    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-    this.setState({dataSource: ds.cloneWithRows(temp), needDelete:null});
+    this.resetListView(temp);
   }
   renderPdf() {
     if (this.state.dataPdf.stored=='') {
+      // console.log(this.state.width);
       return (
         <View style={styles.groundPdfDownload}>
           <Progress.Bar style={{marginTop: 200}} progress={this.state.width} width={200} />
@@ -278,20 +279,22 @@ class GridView extends Component {
       // console.log(rowData);
     if(width === 0||width === 1)
     return(
-      <TouchableHighlight onPress={()=>{
-      this.setState({dataPdf:rowData});
-      this.refs.modal3.open();
+      <TouchableOpacity onPress={()=>{
+        this.setState({dataPdf:rowData,width:0});
+        this.setModalVisible(!this.state.modalVisible);
+        if(rowData.stored==''){ this.downloadPdf(rowData);}
       }}>
+      <View>
         <Image
           ref='thumb'
           style={styles.thumb}
           source={{ uri: baseUrl }}
-        >
+        />
         <Text style={styles.text}>
           {rowData.year}
         </Text>
-        </Image>
-      </TouchableHighlight>
+      </View>
+      </TouchableOpacity>
     )
     return <Progress.Bar progress={rowData.width} width={50} />
   }
@@ -300,7 +303,7 @@ class GridView extends Component {
     // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_2009_63_90_3x.jpg';
     let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_'+rowData.year+'_63_90_3x.jpg';
     // let basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/'+rowData.pdf;
-    // console.log(rowData);
+    // console.log(this.state.width);
     return (
       <View style={styles.row}>
         {this.renderImage(rowData.width,rowData,baseUrl)}
@@ -308,7 +311,6 @@ class GridView extends Component {
       </View>
     );
   }
-
   render() {
     let shareOptions = {
       title: "React Native",
@@ -333,25 +335,6 @@ class GridView extends Component {
               <Text style={{textAlign: 'center', fontSize:20, color:'blue', paddingVertical:15}}>Cancel</Text>
             </TouchableOpacity>
           </View>:null}
-          <Modal1 style={[styles.modal, styles.modal3]} position={"center"} ref={"modal3"} isDisabled={this.state.isDisabled}>
-            <Text style={{fontSize:22,margin:5, marginBottom:10}}
-            onPress={() => {
-              this.refs.modal3.close();
-               this.setModalVisible(!this.state.modalVisible);
-              this.setState({ isOpen: true, width:0});
-              //  console.log(this.state.dataPdf);
-              if(this.state.dataPdf.stored=='')
-                this.downloadPdf(this.state.dataPdf);
-             }}>Open</Text>
-            <Text style={{fontSize:22,margin:5}}
-             onPress={() => {
-               this.refs.modal3.close();
-                this.refs.modal4.open();
-                this.setState({ isOpen: true });
-              }}
-            >Share</Text>
-          </Modal1>
-
           <Modal
             animationType={"slide"}
             transparent={false}
@@ -361,9 +344,8 @@ class GridView extends Component {
            >
            <View style={styles.pdfShare}>
              <TouchableHighlight  onPress={() =>{
-               let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
                this.setModalVisible(!this.state.modalVisible);
-               this.setState({dataSource: ds.cloneWithRows(this.state.localData)});
+               this.resetListView(this.state.localData);
              }}>
               <Icon1 name="ios-arrow-back" size={40} color="#696969"/>
              </TouchableHighlight>
@@ -426,7 +408,7 @@ const styles = StyleSheet.create({
       margin: 10,
       marginBottom: -5,
       width: 100,
-      height: 100,
+      height: 130,
       alignItems: 'center',
       borderColor: '#CCC'
     },
@@ -435,8 +417,8 @@ const styles = StyleSheet.create({
       justifyContent: 'space-between',
     },
     thumb: {
-      width: 64,
-      height: 64,
+      width: 65,
+      height: 130,
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'center',
@@ -484,11 +466,9 @@ const styles = StyleSheet.create({
       justifyContent: 'space-around'
     },
     text: {
-      backgroundColor: 'rgba(0,0,0,0.3)',
-      color: 'white',
-      padding: 5,
-      position: 'absolute',
-      fontSize: 13,
+      textAlign:'center',
+      color: 'black',
+      fontSize: 14,
       bottom: 0,
       width: 64
     },

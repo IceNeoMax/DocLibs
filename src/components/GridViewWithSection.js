@@ -351,7 +351,7 @@ class GridViewWithSection extends Component {
     };
     return (
       <View>
-          <ListView
+          <ListView horizontal
             contentContainerStyle={styles.list}
             dataSource={this.state.dataSource}
             renderRow={this.renderRow}

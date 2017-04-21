@@ -6,10 +6,12 @@ import {
   ListView,
   ScrollView,
   Image,
+  Dimensions
 } from 'react-native';
 import * as Progress from 'react-native-progress';
 import PDFView from 'react-native-pdf-view';
 import RNFetchBlob from 'react-native-fetch-blob';
+const { width, height } = Dimensions.get("window");
 
 const pdfDownloadURL = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q1_ENG_2015.pdf';
 
@@ -137,9 +139,9 @@ renderRow=(foodItem)=>{
     let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/'+foodItem.pdf.slice(0,11)+'_63_90_3x.jpg';
 
     return (
-      <View>
+      <View style={styles.item}>
       <Image
-          style={{width: 50, height: 50}}
+          style={{width: 50, height: 50,margin:50}}
           source={{uri: baseUrl}}
         />
       <Text>dkmmm</Text>
@@ -153,28 +155,45 @@ renderSectionHeader=(sectionData, year)=>{
 // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/'+sectionData.pdf.slice(0,11)+'_63_90_3x.jpg';
 
   return (
-
-    <Text style={{fontWeight: "700"}}>{year}</Text>
+    <View style={{flex:1,flexDirection:'column'}}>
+    <Text style={{width,fontWeight: "700"}}>{year}</Text>
+    </View>
 
   )
 }
   render() {
     return (
+      // <View style={styles.container}>
+      <View >
       <ListView
-              dataSource={this.state.dataSource}
-              renderRow={this.renderRow}
-              renderSectionHeader={this.renderSectionHeader}
-            />
+
+        initialListSize={20}
+        dataSource={this.state.dataSource}
+        renderRow={(rowData) => this.renderRow(rowData)}
+        renderSectionHeader={this.renderSectionHeader}
+      />
+      </View>
+
     )
   }
 }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
+
   },
+  item: {
+        backgroundColor: '#CCC',
+        margin: 10,
+        width: 100,
+        height: 100
+    },
   pdf: {
     flex: 1
-  }
+  },
+  list:{
+    justifyContent: 'center',
+       flexDirection: 'row',
+       flexWrap: 'wrap'
+  },
 });
