@@ -45,6 +45,8 @@
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		94B12D8345F940EF8225621F /* libRNShare.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29A15B5C11404867B21F088C /* libRNShare.a */; };
 		C116F5F42C77475CB817F902 /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8B6391F0CDC1434C8C856491 /* Octicons.ttf */; };
+		CB13D7B21EAD93FF00B247DC /* KDSocialShare.m in Sources */ = {isa = PBXBuildFile; fileRef = CB13D7B11EAD93FF00B247DC /* KDSocialShare.m */; };
+		CB94336B1EAA185200058F6F /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB94331E1EAA16C500058F6F /* Social.framework */; };
 		D028126B3FC14EF4972FE8B7 /* Foundation.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3F9CA815E0874D7B9647722D /* Foundation.ttf */; };
 		D5B3B7DD7E2A4AD69562D042 /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7BD3F44FA00C4D008754233E /* MaterialIcons.ttf */; };
 		ED410ECC48764B43BFE269D1 /* libRNVectorIcons.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C17205A9D924E3C8346F130 /* libRNVectorIcons.a */; };
@@ -241,20 +243,6 @@
 			remoteGlobalIDString = 58B5119B1A9E6C1200147676;
 			remoteInfo = RCTText;
 		};
-		CB5A35EE1EA60A260040429F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E13EEC9EEA58454E8268268F /* ReactNativeSocialShare.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 13B07F961A680F5B00A75B9A;
-			remoteInfo = ReactNativeSocialShare;
-		};
-		CB5A35F01EA60A260040429F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E13EEC9EEA58454E8268268F /* ReactNativeSocialShare.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 00E356EE1AD99517003FC87E;
-			remoteInfo = ReactNativeSocialShareTests;
-		};
 		CB5A35F31EA60A260040429F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD7D2B50EFFF41CD8CC1E137 /* RNFetchBlob.xcodeproj */;
@@ -275,6 +263,34 @@
 			proxyType = 2;
 			remoteGlobalIDString = 5DBEB1501B18CEA900B34395;
 			remoteInfo = RNVectorIcons;
+		};
+		CB94335E1EAA181400058F6F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CB94334F1EAA181300058F6F /* ReactNativeSocialShare.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 13B07F961A680F5B00A75B9A;
+			remoteInfo = ReactNativeSocialShare;
+		};
+		CB9433601EAA181400058F6F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CB94334F1EAA181300058F6F /* ReactNativeSocialShare.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 00E356EE1AD99517003FC87E;
+			remoteInfo = ReactNativeSocialShareTests;
+		};
+		CB9433671EAA181F00058F6F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CB9433621EAA181E00058F6F /* ReactNativeSocialShare.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 13B07F961A680F5B00A75B9A;
+			remoteInfo = ReactNativeSocialShare;
+		};
+		CB9433691EAA181F00058F6F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CB9433621EAA181E00058F6F /* ReactNativeSocialShare.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 00E356EE1AD99517003FC87E;
+			remoteInfo = ReactNativeSocialShareTests;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -315,7 +331,11 @@
 		97B80F85C39847AEB41FE668 /* RNVectorIcons.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNVectorIcons.xcodeproj; path = "../node_modules/react-native-vector-icons/RNVectorIcons.xcodeproj"; sourceTree = "<group>"; };
 		BD7D2B50EFFF41CD8CC1E137 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../node_modules/react-native-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
 		C4A946FD80FB45CA985765BD /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
-		E13EEC9EEA58454E8268268F /* ReactNativeSocialShare.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = ReactNativeSocialShare.xcodeproj; path = "../node_modules/react-native-social-share/ReactNativeSocialShare.xcodeproj"; sourceTree = "<group>"; };
+		CB13D7B01EAD93FF00B247DC /* KDSocialShare.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KDSocialShare.h; path = "../node_modules/react-native-social-share/iOS/KDSocialShare.h"; sourceTree = "<group>"; };
+		CB13D7B11EAD93FF00B247DC /* KDSocialShare.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KDSocialShare.m; path = "../node_modules/react-native-social-share/iOS/KDSocialShare.m"; sourceTree = "<group>"; };
+		CB94331E1EAA16C500058F6F /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
+		CB94334F1EAA181300058F6F /* ReactNativeSocialShare.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ReactNativeSocialShare.xcodeproj; path = "../node_modules/react-native-social-share/ReactNativeSocialShare.xcodeproj"; sourceTree = "<group>"; };
+		CB9433621EAA181E00058F6F /* ReactNativeSocialShare.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ReactNativeSocialShare.xcodeproj; path = "../node_modules/react-native-social-share/ReactNativeSocialShare.xcodeproj"; sourceTree = "<group>"; };
 		E161D78197DE4E76955840EA /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		E485216B66654DC2B3244686 /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
 		EC3DE1D65F774F688BB480D9 /* RNShare.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNShare.xcodeproj; path = "../node_modules/react-native-share/ios/RNShare.xcodeproj"; sourceTree = "<group>"; };
@@ -335,6 +355,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CB94336B1EAA185200058F6F /* Social.framework in Frameworks */,
 				146834051AC3E58100842450 /* libReact.a in Frameworks */,
 				5E9157361DD0AC6A00FF2AA8 /* libRCTAnimation.a in Frameworks */,
 				00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */,
@@ -521,6 +542,9 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				CB13D7B01EAD93FF00B247DC /* KDSocialShare.h */,
+				CB13D7B11EAD93FF00B247DC /* KDSocialShare.m */,
+				CB9433621EAA181E00058F6F /* ReactNativeSocialShare.xcodeproj */,
 				5E91572D1DD0AC6500FF2AA8 /* RCTAnimation.xcodeproj */,
 				146833FF1AC3E56700842450 /* React.xcodeproj */,
 				00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */,
@@ -533,7 +557,6 @@
 				00C302DF1ABCB9EE00DB3ED1 /* RCTVibration.xcodeproj */,
 				139FDEE61B06529A00C62182 /* RCTWebSocket.xcodeproj */,
 				EC3DE1D65F774F688BB480D9 /* RNShare.xcodeproj */,
-				E13EEC9EEA58454E8268268F /* ReactNativeSocialShare.xcodeproj */,
 				BD7D2B50EFFF41CD8CC1E137 /* RNFetchBlob.xcodeproj */,
 				97B80F85C39847AEB41FE668 /* RNVectorIcons.xcodeproj */,
 			);
@@ -557,6 +580,7 @@
 				00E356EF1AD99517003FC87E /* DocumentLibraryTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				5D19A832247D455EA3F5A75C /* Resources */,
+				CB94331D1EAA16C500058F6F /* Frameworks */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -581,15 +605,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		CB5A35CD1EA60A260040429F /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				CB5A35EF1EA60A260040429F /* ReactNativeSocialShare.app */,
-				CB5A35F11EA60A260040429F /* ReactNativeSocialShareTests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		CB5A35CF1EA60A260040429F /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -602,6 +617,33 @@
 			isa = PBXGroup;
 			children = (
 				CB5A35FD1EA60A260040429F /* libRNVectorIcons.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CB94331D1EAA16C500058F6F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CB94334F1EAA181300058F6F /* ReactNativeSocialShare.xcodeproj */,
+				CB94331E1EAA16C500058F6F /* Social.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CB9433501EAA181300058F6F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CB94335F1EAA181400058F6F /* ReactNativeSocialShare.app */,
+				CB9433611EAA181400058F6F /* ReactNativeSocialShareTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CB9433631EAA181E00058F6F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CB9433681EAA181F00058F6F /* ReactNativeSocialShare.app */,
+				CB94336A1EAA181F00058F6F /* ReactNativeSocialShareTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -765,8 +807,12 @@
 					ProjectRef = 146833FF1AC3E56700842450 /* React.xcodeproj */;
 				},
 				{
-					ProductGroup = CB5A35CD1EA60A260040429F /* Products */;
-					ProjectRef = E13EEC9EEA58454E8268268F /* ReactNativeSocialShare.xcodeproj */;
+					ProductGroup = CB9433631EAA181E00058F6F /* Products */;
+					ProjectRef = CB9433621EAA181E00058F6F /* ReactNativeSocialShare.xcodeproj */;
+				},
+				{
+					ProductGroup = CB9433501EAA181300058F6F /* Products */;
+					ProjectRef = CB94334F1EAA181300058F6F /* ReactNativeSocialShare.xcodeproj */;
 				},
 				{
 					ProductGroup = CB5A35CF1EA60A260040429F /* Products */;
@@ -967,20 +1013,6 @@
 			remoteRef = 832341B41AAA6A8300B99B32 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		CB5A35EF1EA60A260040429F /* ReactNativeSocialShare.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = ReactNativeSocialShare.app;
-			remoteRef = CB5A35EE1EA60A260040429F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CB5A35F11EA60A260040429F /* ReactNativeSocialShareTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = ReactNativeSocialShareTests.xctest;
-			remoteRef = CB5A35F01EA60A260040429F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		CB5A35F41EA60A260040429F /* libRNFetchBlob.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1000,6 +1032,34 @@
 			fileType = archive.ar;
 			path = libRNVectorIcons.a;
 			remoteRef = CB5A35FC1EA60A260040429F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CB94335F1EAA181400058F6F /* ReactNativeSocialShare.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = ReactNativeSocialShare.app;
+			remoteRef = CB94335E1EAA181400058F6F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CB9433611EAA181400058F6F /* ReactNativeSocialShareTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = ReactNativeSocialShareTests.xctest;
+			remoteRef = CB9433601EAA181400058F6F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CB9433681EAA181F00058F6F /* ReactNativeSocialShare.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = ReactNativeSocialShare.app;
+			remoteRef = CB9433671EAA181F00058F6F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CB94336A1EAA181F00058F6F /* ReactNativeSocialShareTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = ReactNativeSocialShareTests.xctest;
+			remoteRef = CB9433691EAA181F00058F6F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -1093,6 +1153,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				CB13D7B21EAD93FF00B247DC /* KDSocialShare.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -19,13 +19,24 @@ import Share, {ShareSheet, Button} from 'react-native-share';
 import * as Progress from 'react-native-progress';
 import PDFView from 'react-native-pdf-view';
 import RNFetchBlob from 'react-native-fetch-blob';
+import ModalDropdown from 'react-native-modal-dropdown';
+
 
 import {
-  shareOnTwitter
+  shareOnTwitter,
+  shareOnFacebook,
 } from 'react-native-social-share';
 
 const basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/';
 let downloading = null;
+let shareOptions = {
+  title: "React Native",
+  message: "Hola mundo",
+  url: "http://facebook.github.io/react-native/",
+  subject: "Share Link", //  for email
+   "social": "email"
+};
+
 class GridView extends Component {
   componentWillMount() {
     const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
@@ -91,11 +102,11 @@ class GridView extends Component {
             localData:JSON.parse(res),
             dataSource:this.state.dataSource.cloneWithRows(JSON.parse(res)),
           });
-        // console.log("temp");
+        // console.log(JSON.parse(res));
       }
     });
   }
-  tweet() {
+  tweet=()=>{
       shareOnTwitter({
           'text':'Global democratized marketplace for art',
           'link':'https://artboost.com/',
@@ -108,6 +119,35 @@ class GridView extends Component {
         }
       );
     }
+  facebookShare() {
+    shareOnFacebook({
+        'text':'Global democratized marketplace for art',
+        'link':'https://artboost.com/',
+        'imagelink':'https://artboost.com/apple-touch-icon-144x144.png',
+        //or use image
+        'image': 'artboost-icon',
+      },
+      (results) => {
+        console.log(results);
+      }
+    );
+  }
+  shareWithOpt= (num)=>{
+    console.log(num);
+    this.setModalVisible(!this.state.modalVisible);
+    if (num==0) Share.open(shareOptions);
+    else if (num==1) this.tweet();
+    else if (num==2) console.log(num);
+    else if (num==3) this.facebookShare.bind(this);
+  }
+  renderOptionShare = (shareOpts) =>{
+    // console.log(rowData);
+    return (
+      <View>
+          <Text style={{fontSize:16, textAlign:'center',padding:10, color:'blue'}}>{shareOpts.name}</Text>
+      </View>
+    );
+  }
   resetListView = (temp) => {
     let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.setState({dataSource: ds.cloneWithRows(temp)});
@@ -222,6 +262,7 @@ class GridView extends Component {
   }
   renderIcon(rowData){
     // console.log(rowData);
+    // console.log('icon rendered!');
     if (rowData.stored!=''&& rowData.minus== false&& rowData.width== 1)
       return (
         <Icon1 onPress={()=>{
@@ -312,15 +353,16 @@ class GridView extends Component {
     );
   }
   render() {
-    let shareOptions = {
-      title: "React Native",
-      message: "Hola mundo",
-      url: "http://facebook.github.io/react-native/",
-      subject: "Share Link", //  for email
-       "social": "email"
-    };
+
     return (
       <View style={{ flex: 1 }}>
+      <View>
+      <TouchableOpacity onPress={()=>Share.open(shareOptions)}>
+      <Text>facebook
+      </Text>
+      </TouchableOpacity>
+
+      </View>
           <ListView
             initialListSize={20}
             contentContainerStyle={styles.list}
@@ -343,13 +385,19 @@ class GridView extends Component {
             onRequestClose={() => {alert("Modal has been closed.")}}
            >
            <View style={styles.pdfShare}>
-             <TouchableHighlight  onPress={() =>{
+             <TouchableOpacity  onPress={() =>{
                this.setModalVisible(!this.state.modalVisible);
                this.resetListView(this.state.localData);
              }}>
               <Icon1 name="ios-arrow-back" size={40} color="#696969"/>
-             </TouchableHighlight>
-             <Icon1 name="ios-share-outline" size={40} color="#696969" />
+             </TouchableOpacity>
+
+             <ModalDropdown dropdownStyle={{ width:200,height:0}}
+              renderRow={this.renderOptionShare}
+              options={[{opt:1,name:'Send via Email'}, {opt:2,name:'Tweet this'},{opt:3,name:'Share via Whatsapp'},{opt:4,name:'Share on Facebook'} ]}
+              onSelect={this.shareWithOpt}>
+                <Icon1 name="ios-share-outline" size={40} color="#696969" />
+              </ModalDropdown>
            </View>
 
             {this.renderPdf(this.state.dataPdf)}
@@ -413,6 +461,8 @@ const styles = StyleSheet.create({
       borderColor: '#CCC'
     },
     pdfShare:{
+      marginTop:10,
+      padding:10,
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
@@ -425,29 +475,62 @@ const styles = StyleSheet.create({
       alignItems: 'flex-end',
     },
     imageIconCheck:{
-      alignSelf:'center',
-      width:20,
-      height:20,
-      paddingLeft:2,
-      borderRadius:20 ,
-      borderWidth:1,
-      borderColor:'#228b22',
-      backgroundColor:'#7fff00',
-      position:'absolute',
-      top:0,
-      right:5
+      ...Platform.select({
+        ios:{
+          alignSelf:'center',
+          width:20,
+          height:20,
+          paddingLeft:2,
+          borderRadius:10 ,
+          borderWidth:1,
+          borderColor:'#228b22',
+          backgroundColor:'#7fff00',
+          position:'absolute',
+          top:0,
+          right:5
+        },
+        android:{
+          alignSelf:'center',
+          width:20,
+          height:20,
+          paddingLeft:2,
+          borderRadius:20 ,
+          borderWidth:1,
+          borderColor:'#228b22',
+          backgroundColor:'#7fff00',
+          position:'absolute',
+          top:0,
+          right:5
+        }
+      })
     },
     imageIconMinus:{
-      alignSelf:'center',
-      width:20,
-      height:20,
-      borderRadius:20 ,
-      borderWidth:1,
-      borderColor:'#ff0000',
-      backgroundColor:'#dc143c',
-      position:'absolute',
-      top:0,
-      right:5
+      ...Platform.select({
+        ios:{
+          alignSelf:'center',
+          width:20,
+          height:20,
+          borderRadius:10 ,
+          borderWidth:1,
+          borderColor:'#fff',
+          backgroundColor:'#dc143c',
+          position:'absolute',
+          top:0,
+          right:5
+        },
+        android:{
+          alignSelf:'center',
+          width:20,
+          height:20,
+          borderRadius:20 ,
+          borderWidth:1,
+          borderColor:'#ff0000',
+          backgroundColor:'#dc143c',
+          position:'absolute',
+          top:0,
+          right:5
+        }
+      })
     },
     modal3: {
       padding: 10,
