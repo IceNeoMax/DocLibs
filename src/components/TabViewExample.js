@@ -4,7 +4,7 @@ import { TabViewAnimated, TabBar } from 'react-native-tab-view';
 import GridView from './GridView';
 import GridViewWithSection from './GridViewWithSection';
 import ViewPdf from './ViewPdf';
-import testGrid from './testGrid';
+// import testGrid from './testGrid';
 
 const styles = StyleSheet.create({
   container: {
@@ -19,7 +19,7 @@ export default class TabViewExample extends Component {
     routes: [
       { key: '1', title: 'First' },
       { key: '2', title: 'Second' },
-      { key: '3', title: 'Grid' },
+      // { key: '3', title: 'Grid' },
     ],
   };
 
@@ -45,12 +45,6 @@ export default class TabViewExample extends Component {
         <GridViewWithSection />
         </View>
       );
-      case '3':
-        return (
-          <View style={[styles.page]}>
-            <ViewPdf />
-          </View>
-        );
       // case '3':
       //   return (
       //     <View style={[styles.page]}>

@@ -79,10 +79,12 @@ export default class ViewPdf extends React.Component {
 //   }
 // }
 componentWillMount() {
-  let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2,
-      sectionHeaderHasChanged: (s1, s2) => s1 !== s2 });
+  let ds = new ListView.DataSource({
+        rowHasChanged: (r1, r2) => r1 !== r2,
+        sectionHeaderHasChanged: (s1, s2) => s1 !== s2
+      });
   this.state = {
-    food: [
+    food1: [
       {year:2009, pdf: 'Q4_ENG_2009.pdf', stored:'', width:0,minus:false},
       {year:2009, pdf: 'Q3_ENG_2009.pdf', stored:'', width:0,minus:false},
       {year:2009, pdf: 'Q2_ENG_2009.pdf', stored:'', width:0,minus:false},
@@ -116,36 +118,65 @@ componentWillMount() {
       {year:2016, pdf: 'Q2_ENG_2016.pdf', stored:'', width:0,minus:false},
       {year:2016, pdf: 'Q1_ENG_2016.pdf', stored:'', width:0,minus:false},
     ],
+    food:[
+      {123:{'data':[1,2,3]}},
+      {12:{12:[11,22,3]}},
+      {18:{18:[13,24,3]}},
+      {100:{100:[11,2,3]}},
+      {19:{19:[1,21,3]}},
+      {1002:{1002:[1,2,31]}},
+      {128:{18:[12,2,3]}},
+      {1020:{100:[1,22,3]}},
+    ],
     dataSource: ds,
   };
   this.setState({
-    dataSource: ds.cloneWithRowsAndSections(this.convertFoodArrayToMap(this.state.food))
+    // dataSource: ds.cloneWithRows(this.convertFoodArrayToMap(this.state.food))
+    dataSource: ds.cloneWithRowsAndSections(this.state.food)
   })
 }
 convertFoodArrayToMap=(food)=>{
-let foodCategoryMap = {}; // Create the blank map
-food.forEach((foodItem)=>{
-  if (!foodCategoryMap[foodItem.year]) {
-    // Create an entry in the map for the year if it hasn't yet been created
-    foodCategoryMap[foodItem.year] = [];
-  }
-  foodCategoryMap[foodItem.year].push(foodItem);
-});
-// console.log(foodCategoryMap);
-return foodCategoryMap
+  let foodCategoryMap = []; // Create the blank map
+  food.map((foodItem)=>{
+    // console.log(foodItem.year);
+    if (!foodCategoryMap[foodItem.year]) {
+      // Create an entry in the map for the year if it hasn't yet been created
+      foodCategoryMap[foodItem.year] = [];
+    }
+    foodCategoryMap[foodItem.year].push(foodItem);
+    // console.log(foodCategoryMap);
+  });
+  // console.log(foodCategoryMap.reverse());
+  return foodCategoryMap
 }
-renderRow=(foodItem)=>{
+renderMiniRow=(data)=>{
+  // console.log(data);
+  return (
+    <View>
+    <Text>{data}
+    </Text>
+    </View>
+  )
+}
+// <ListView
+//   contentContainerStyle={styles.list}
+//   dataSource={tempDS.cloneWithRows(foodItem)}
+//   renderRow={this.renderMiniRow}
+// />
+renderRow=(foodItem,rowID,i)=>{
     // console.log(foodItem);
-    let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/'+foodItem.pdf.slice(0,11)+'_63_90_3x.jpg';
-
+    // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/'+foodItem.pdf.slice(0,11)+'_63_90_3x.jpg';
+    let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/'+'Q1_ENG_2016'+'_63_90_3x.jpg';
+    let tempDs = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    let miniRow = tempDs.cloneWithRows(foodItem);
+    // console.log(miniRow);
     return (
       <View style={styles.item}>
-      <Image
-          style={{width: 50, height: 50,margin:50}}
-          source={{uri: baseUrl}}
-        />
-      <Text>dkmmm</Text>
-
+      <ListView
+        contentContainerStyle={styles.list}
+        dataSource={miniRow}
+        renderRow={this.renderMiniRow}
+      />
       </View>
     )
 }
@@ -156,22 +187,21 @@ renderSectionHeader=(sectionData, year)=>{
 
   return (
     <View style={{flex:1,flexDirection:'column'}}>
-    <Text style={{width,fontWeight: "700"}}>{year}</Text>
+      <Text style={{fontWeight: "700"}}>{year}</Text>
     </View>
-
   )
 }
   render() {
     return (
-      // <View style={styles.container}>
-      <View >
+      <View style={styles.container}>
       <ListView
 
         initialListSize={20}
         dataSource={this.state.dataSource}
-        renderRow={(rowData) => this.renderRow(rowData)}
+        renderRow={(rowData,rowID,i) => this.renderRow(rowData,rowID,i)}
         renderSectionHeader={this.renderSectionHeader}
       />
+
       </View>
 
     )

@@ -14,28 +14,16 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon1 from 'react-native-vector-icons/Ionicons';
-import Modal1 from 'react-native-modalbox';
+// import Modal1 from 'react-native-modalbox';
 import Share, {ShareSheet, Button} from 'react-native-share';
 import * as Progress from 'react-native-progress';
 import PDFView from 'react-native-pdf-view';
 import RNFetchBlob from 'react-native-fetch-blob';
-import ModalDropdown from 'react-native-modal-dropdown';
+// import ModalDropdown from 'react-native-modal-dropdown';
 
-
-import {
-  shareOnTwitter,
-  shareOnFacebook,
-} from 'react-native-social-share';
 
 const basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/';
 let downloading = null;
-let shareOptions = {
-  title: "React Native",
-  message: "Hola mundo",
-  url: "http://facebook.github.io/react-native/",
-  subject: "Share Link", //  for email
-   "social": "email"
-};
 
 class GridView extends Component {
   componentWillMount() {
@@ -46,6 +34,12 @@ class GridView extends Component {
       needDelete:null,
       isPdfDownload: false,
       width: 0,
+      shareOptions : {
+        title: '',
+        message: '',
+        url: '',
+        subject: "Share Link", //  for email
+      },
       isOpen: false,
       isDisabled: false,
       swipeToClose: true,
@@ -106,48 +100,7 @@ class GridView extends Component {
       }
     });
   }
-  tweet=()=>{
-      shareOnTwitter({
-          'text':'Global democratized marketplace for art',
-          'link':'https://artboost.com/',
-          'imagelink':'https://artboost.com/apple-touch-icon-144x144.png',
-          //or use image
-          'image': 'artboost-icon',
-        },
-        (results) => {
-          console.log(results);
-        }
-      );
-    }
-  facebookShare() {
-    shareOnFacebook({
-        'text':'Global democratized marketplace for art',
-        'link':'https://artboost.com/',
-        'imagelink':'https://artboost.com/apple-touch-icon-144x144.png',
-        //or use image
-        'image': 'artboost-icon',
-      },
-      (results) => {
-        console.log(results);
-      }
-    );
-  }
-  shareWithOpt= (num)=>{
-    console.log(num);
-    this.setModalVisible(!this.state.modalVisible);
-    if (num==0) Share.open(shareOptions);
-    else if (num==1) this.tweet();
-    else if (num==2) console.log(num);
-    else if (num==3) this.facebookShare.bind(this);
-  }
-  renderOptionShare = (shareOpts) =>{
-    // console.log(rowData);
-    return (
-      <View>
-          <Text style={{fontSize:16, textAlign:'center',padding:10, color:'blue'}}>{shareOpts.name}</Text>
-      </View>
-    );
-  }
+
   resetListView = (temp) => {
     let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.setState({dataSource: ds.cloneWithRows(temp)});
@@ -211,6 +164,11 @@ class GridView extends Component {
   }
   deleteFile = () =>{
     let temp = [];
+    this.state.needDelete.map(del=>{
+      // console.log(del.stored);
+      RNFetchBlob.fs.unlink(del.stored)
+      .catch(err => console.log(err));
+    });
     this.state.localData.map(localres=>{
       this.state.needDelete.map(del=>{
         if (localres.year==del.year) {localres.stored = '';localres.minus = false;localres.width = 0;}
@@ -227,6 +185,7 @@ class GridView extends Component {
        localres.minus = false;
       temp.push(localres);
     });
+    this.setState({localData:temp, needDelete:null});
     this.resetListView(temp);
   }
   renderPdf() {
@@ -291,7 +250,7 @@ class GridView extends Component {
           let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
           this.setState({dataSource: ds.cloneWithRows(temp)});
         }}
-        name="md-checkmark" size={20} color="#228b22" style={styles.imageIconCheck}/>
+        name="md-checkmark" size={20} color="#4CAF50" style={styles.imageIconCheck}/>
       );
       else if (rowData.stored!=''&& rowData.minus== true)
        return(
@@ -321,7 +280,13 @@ class GridView extends Component {
     if(width === 0||width === 1)
     return(
       <TouchableOpacity onPress={()=>{
-        this.setState({dataPdf:rowData,width:0});
+        this.setState({dataPdf:rowData,width:0,
+          shareOptions:{title: 'Share PDF',
+        message: 'Novozymes '+rowData.pdf,
+        url: (basePdf+rowData.pdf),
+        subject: "Share Link",
+        social:"email"
+      }});
         this.setModalVisible(!this.state.modalVisible);
         if(rowData.stored==''){ this.downloadPdf(rowData);}
       }}>
@@ -337,7 +302,21 @@ class GridView extends Component {
       </View>
       </TouchableOpacity>
     )
-    return <Progress.Bar progress={rowData.width} width={50} />
+    return (
+      <View>
+      <Image
+        ref='thumb'
+        style={styles.thumb}
+        source={{ uri: baseUrl }}
+      >
+      <View style={styles.overlay}/>
+      <Progress.Bar style={{alignSelf:'center',backgroundColor:'#fff',borderRadius:0}} progress={rowData.width} width={55} />
+      </Image>
+      <Text style={styles.text}>
+        {rowData.year}
+      </Text>
+    </View>
+    )
   }
   renderRow = (rowData) => {
     // console.log(rowData);
@@ -355,14 +334,8 @@ class GridView extends Component {
   render() {
 
     return (
-      <View style={{ flex: 1 }}>
-      <View>
-      <TouchableOpacity onPress={()=>Share.open(shareOptions)}>
-      <Text>facebook
-      </Text>
-      </TouchableOpacity>
+      <View style={{ flex: 1,backgroundColor:'#EFEFF4' }}>
 
-      </View>
           <ListView
             initialListSize={20}
             contentContainerStyle={styles.list}
@@ -391,39 +364,13 @@ class GridView extends Component {
              }}>
               <Icon1 name="ios-arrow-back" size={40} color="#696969"/>
              </TouchableOpacity>
-
-             <ModalDropdown dropdownStyle={{ width:200,height:0}}
-              renderRow={this.renderOptionShare}
-              options={[{opt:1,name:'Send via Email'}, {opt:2,name:'Tweet this'},{opt:3,name:'Share via Whatsapp'},{opt:4,name:'Share on Facebook'} ]}
-              onSelect={this.shareWithOpt}>
-                <Icon1 name="ios-share-outline" size={40} color="#696969" />
-              </ModalDropdown>
+             <Icon1 onPress={()=>{
+               Share.open(this.state.shareOptions).catch(err => console.log(err));
+             }} name="ios-share-outline" size={40} color="#696969" />
            </View>
 
             {this.renderPdf(this.state.dataPdf)}
           </Modal>
-
-          <Modal1 style={[styles.modal, styles.modal4]} position={'bottom'} ref={'modal4'}>
-          <Text>Share {this.state.dataPdf.pdf} via</Text>
-          <View style={styles.sharingPic}>
-            <TouchableOpacity onPress={()=>{
-                Share.open(shareOptions);
-              }}>
-              <View style={{ paddingTop: 7 }}>
-                <Icon1 name="md-mail" size={45} color="#696969" />
-                <Text style={{ marginLeft: 5 }}>Mail</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity  onPress={this.tweet}>
-              <View style={{ paddingLeft: -20 }}>
-              <Icon name="twitter-box" size={50} color="#4099FF" />
-                <Text style={{ marginLeft: 5 }}>Twitter</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-        </Modal1>
       </View>
     );
   }
@@ -454,7 +401,7 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       padding: 5,
       margin: 10,
-      marginBottom: -5,
+      marginBottom: 5,
       width: 100,
       height: 130,
       alignItems: 'center',
@@ -474,6 +421,15 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'flex-end',
     },
+    overlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'white',
+    opacity: 0.5
+    },
     imageIconCheck:{
       ...Platform.select({
         ios:{
@@ -483,11 +439,12 @@ const styles = StyleSheet.create({
           paddingLeft:2,
           borderRadius:10 ,
           borderWidth:1,
-          borderColor:'#228b22',
-          backgroundColor:'#7fff00',
+          borderColor:'#4CAF50',
+          backgroundColor:'#C8E6C9',
           position:'absolute',
           top:0,
-          right:5
+          right:5,
+          overflow:'hidden'
         },
         android:{
           alignSelf:'center',
@@ -496,8 +453,8 @@ const styles = StyleSheet.create({
           paddingLeft:2,
           borderRadius:20 ,
           borderWidth:1,
-          borderColor:'#228b22',
-          backgroundColor:'#7fff00',
+          borderColor:'#4CAF50',
+          backgroundColor:'#C8E6C9',
           position:'absolute',
           top:0,
           right:5
@@ -516,7 +473,8 @@ const styles = StyleSheet.create({
           backgroundColor:'#dc143c',
           position:'absolute',
           top:0,
-          right:5
+          right:5,
+          overflow:'hidden'
         },
         android:{
           alignSelf:'center',
