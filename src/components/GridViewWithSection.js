@@ -15,24 +15,26 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon1 from 'react-native-vector-icons/Ionicons';
-import Modal1 from 'react-native-modalbox';
 import Share from 'react-native-share';
 import * as Progress from 'react-native-progress';
 import PDFView from 'react-native-pdf-view';
 import RNFetchBlob from 'react-native-fetch-blob';
-import InvertibleScrollView from 'react-native-invertible-scroll-view';
 
 const { width, height } = Dimensions.get("window");
 const basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/';
 let downloading = null;
-
+const halfHeight=height/2-30;
+const ds = new ListView.DataSource({
+  rowHasChanged: (r1, r2) => r1 !== r2,
+  sectionHeaderHasChanged: (s1, s2) => s1 !== s2
+ });
 class GridViewWithSection extends Component {
 
   componentWillMount() {
-    let ds = new ListView.DataSource({
-      rowHasChanged: (r1, r2) => r1 !== r2,
-      sectionHeaderHasChanged: (s1, s2) => s1 !== s2
-     });
+    // let ds = new ListView.DataSource({
+    //   rowHasChanged: (r1, r2) => r1 !== r2,
+    //   sectionHeaderHasChanged: (s1, s2) => s1 !== s2
+    //  });
     this.state = {
       dataPdf:{},
       localData:[],
@@ -120,18 +122,14 @@ convertDataArrayToMap =(data)=>{
   data.map((rowData)=>{
     let year = rowData.year;
     if (!dataCategoryMap[rowData.year])
-    dataCategoryMap[rowData.year] = {[year]:[]};
-    dataCategoryMap[rowData.year][year].push(rowData);
+    dataCategoryMap[year] = {[year]:[]};
+    dataCategoryMap[year][year].push(rowData);
   });
   // console.log(dataCategoryMap);
   // console.log(Object.assign([], dataCategoryMap).reverse());
   return Object.assign([], dataCategoryMap).reverse();
 }
 resetListView = (temp) => {
-  let ds = new ListView.DataSource({
-    rowHasChanged: (r1, r2) => r1 !== r2,
-    sectionHeaderHasChanged: (s1, s2) => s1 !== s2
-   });
      this.setState({dataSource:this.state.dataSource.cloneWithRowsAndSections(this.convertDataArrayToMap(temp))});
 }
 downloadPdf = (data) => {
@@ -145,11 +143,11 @@ downloadPdf = (data) => {
         // 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q4_ENG_2015.pdf'
       });
     downloading.progress((received, total) => {
-        let temp = [];
+        let temp = this.state.localData;
         let width= (received/total);
         this.state.localData.map(localres=>{
-          if (localres.pdf==data.pdf) localres.width = width;
-          temp.push(localres);
+          if (localres.pdf==data.pdf) {localres.width = width;
+          temp[localres]=localres;}
         });
         // console.log(width);
         if (data.pdf==this.state.dataPdf.pdf) this.setState({width});
@@ -163,16 +161,16 @@ downloadPdf = (data) => {
       AsyncStorage.getItem('pdfPathSection')
         .then(res => {
           let temp = [];
-          JSON.parse(res).map(storeval=>{
-            // console.log(storeval);
-            if (storeval.pdf==data.pdf)
-            {storeval.stored = this.state.dataPdf.stored;storeval.width=1;}
-            temp.push(storeval);
+          JSON.parse(res).map(localres=>{
+            // console.log(localres);
+            if (localres.pdf==data.pdf)
+            {localres.stored = this.state.dataPdf.stored;localres.width=1;}
+            temp.push(localres);
           })
           // console.log(this.state.dataPdf.stored);
           this.setState({localData:temp});
-          this.resetListView(temp);
           AsyncStorage.setItem('pdfPathSection',JSON.stringify(temp));
+          this.resetListView(temp);
       });
       // console.log('The file saved to ', res.path());
     });
@@ -220,9 +218,10 @@ cancelAllDelete= ()=>{
 renderPdf() {
   if (this.state.dataPdf.stored=='') {
     // console.log(this.state.width);
+    // console.log(halfWidth,width);
     return (
       <View style={styles.groundPdfDownload}>
-        <Progress.Bar style={{marginTop: 200}} progress={this.state.width} width={200} />
+        <Progress.Bar style={{marginTop: halfHeight}} progress={this.state.width} width={200} />
         <View style={{flexDirection: 'column'}}>
           <TouchableOpacity onPress={()=>this.setModalVisible(!this.state.modalVisible)}>
             <Text style={{padding:10, color: 'blue',fontSize:18}}> Move to Background</Text>
@@ -245,7 +244,7 @@ renderPdf() {
                  style={styles.pdf}/>
     )
     return(
-      <WebView source={{uri: this.state.dataPdf.stored}}/>
+      <WebView scalesPageToFit={true} hasZoom={true} maxZoom={2} source={{uri: this.state.dataPdf.stored}}/>
     )
 }
 renderIcon(rowData){
@@ -347,30 +346,42 @@ renderImage(width,rowData,baseUrl){
 }
 renderMiniRow=(rowData)=>{
   // console.log(rowData);
-  let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/'+rowData.pdf.slice(0,11)+'_63_90_3x.jpg';
+  // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/'+rowData.pdf.slice(0,11)+'_63_90_3x.jpg';
+  let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/';
   // console.log(baseUrl);
   return (
-    <View style={styles.row}>
-      {this.renderImage(rowData.width,rowData,baseUrl)}
-      {this.renderIcon(rowData)}
-    </View>
+    rowData.map(row=>
+      <View key={row.pdf} style={styles.row}>
+        {this.renderImage(row.width,row,baseUrl+row.pdf.slice(0,11)+'_63_90_3x.jpg')}
+        {this.renderIcon(row)}
+      </View>
+    )
+    // <View style={styles.row}>
+    //   {this.renderImage(rowData.width,rowData,baseUrl)}
+    //   {this.renderIcon(rowData)}
+    // </View>
+    // <View style={{flex:1}}>
+    //   <Text>123
+    //   </Text>
+    // </View>
   )
 }
-
+// <ListView
+//   contentContainerStyle={styles.list}
+//   dataSource={miniRow}
+//   renderRow={this.renderMiniRow}
+// />
 renderRow = (rowData) => {
   // console.log(rowData);
   // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_2009_63_90_3x.jpg';
   // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_'+rowData.year+'_63_90_3x.jpg';
   // let basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/'+rowData.pdf;
-  let tempDs = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-  let miniRow = tempDs.cloneWithRows(rowData);
+  // let tempDs = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+  // let miniRow = tempDs.cloneWithRows(rowData);
+  // {this.renderMiniRow()}
   return (
-    <View style={{flex:1}}>
-      <ListView
-        contentContainerStyle={styles.list}
-        dataSource={miniRow}
-        renderRow={this.renderMiniRow}
-      />
+    <View style={styles.list}>
+      {this.renderMiniRow(rowData)}
     </View>
 
   );
@@ -410,17 +421,17 @@ render() {
           visible={this.state.modalVisible}
           onRequestClose={() => {alert("Modal has been closed.")}}
          >
-         <View style={styles.pdfShare}>
-           <TouchableOpacity  onPress={() =>{
-             this.setModalVisible(!this.state.modalVisible);
-             this.resetListView(this.state.localData);
-           }}>
-            <Icon1 name="ios-arrow-back" size={40} color="#696969"/>
-           </TouchableOpacity>
-           <Icon1 onPress={()=>{
-             Share.open(this.state.shareOptions).catch(err => console.log(err));
-           }} name="ios-share-outline" size={40} color="#696969" />
-         </View>
+         {(this.state.dataPdf.stored=='')?null:<View style={styles.pdfShare}>
+             <TouchableOpacity  onPress={() =>{
+               this.setModalVisible(!this.state.modalVisible);
+               this.resetListView(this.state.localData);
+             }}>
+              <Icon1 name="ios-arrow-back" size={40} color="#696969"/>
+             </TouchableOpacity>
+             <Icon1 onPress={()=>{
+               Share.open(this.state.shareOptions).catch(err => console.log(err));
+             }} name="ios-share-outline" size={40} color="#696969" />
+           </View>}
 
           {this.renderPdf(this.state.dataPdf)}
         </Modal>

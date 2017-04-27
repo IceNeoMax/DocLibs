@@ -10,24 +10,26 @@ import {
   Modal,
   AsyncStorage,
   Platform,
-  WebView
+  WebView,
+  Dimensions
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon1 from 'react-native-vector-icons/Ionicons';
 // import Modal1 from 'react-native-modalbox';
-import Share, {ShareSheet, Button} from 'react-native-share';
+import Share from 'react-native-share';
 import * as Progress from 'react-native-progress';
 import PDFView from 'react-native-pdf-view';
 import RNFetchBlob from 'react-native-fetch-blob';
 // import ModalDropdown from 'react-native-modal-dropdown';
-
+const { width, height } = Dimensions.get("window");
+const halfHeight=height/2-30;
 
 const basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/';
 let downloading = null;
+const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
 
 class GridView extends Component {
   componentWillMount() {
-    const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.state = {
       dataPdf:{},
       localData:[],
@@ -102,7 +104,6 @@ class GridView extends Component {
   }
 
   resetListView = (temp) => {
-    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.setState({dataSource: ds.cloneWithRows(temp)});
   }
   downloadPdf = (data) => {
@@ -119,7 +120,7 @@ class GridView extends Component {
           let temp = [];
           let width= (received/total);
           this.state.localData.map(localres=>{
-            if (localres.year==data.year) localres.width = width;
+            if (localres.pdf==data.pdf) localres.width = width;
             temp.push(localres);
           });
           // console.log(width);
@@ -134,11 +135,11 @@ class GridView extends Component {
         AsyncStorage.getItem('pdfPath')
           .then(res => {
             let temp = [];
-            JSON.parse(res).map(storeval=>{
-              // console.log(storeval);
-              if (storeval.year==data.year)
-              {storeval.stored = this.state.dataPdf.stored;storeval.width=1;}
-              temp.push(storeval);
+            JSON.parse(res).map(localres=>{
+              // console.log(localres);
+              if (localres.year==data.year)
+              {localres.stored = this.state.dataPdf.stored; localres.width=1;}
+              temp.push(localres);
             })
             // console.log(this.state.dataPdf.stored);
             this.setState({localData:temp});
@@ -153,14 +154,14 @@ class GridView extends Component {
     downloading.cancel(
       // (err, taskId)=>console.log(err,taskId)
     );
-    this.setModalVisible(!this.state.modalVisible);
-    let temp = [];
+    let temp = this.state.localData;
     this.state.localData.map(localres=>{
-      if (localres.year==this.state.dataPdf.year) localres.width = 0;
-      temp.push(localres);
+      if (localres.year==this.state.dataPdf.year) {localres.width = 0;
+      temp[localres]=localres;}
     });
     this.setState({localData:temp, width:0});
     this.resetListView(temp);
+    this.setModalVisible(!this.state.modalVisible);
   }
   deleteFile = () =>{
     let temp = [];
@@ -184,7 +185,7 @@ class GridView extends Component {
     this.state.localData.map(localres=>{
        localres.minus = false;
       temp.push(localres);
-    });
+    });1
     this.setState({localData:temp, needDelete:null});
     this.resetListView(temp);
   }
@@ -193,7 +194,7 @@ class GridView extends Component {
       // console.log(this.state.width);
       return (
         <View style={styles.groundPdfDownload}>
-          <Progress.Bar style={{marginTop: 200}} progress={this.state.width} width={200} />
+          <Progress.Bar style={{marginTop: halfHeight}} progress={this.state.width} width={200} />
           <View style={{flexDirection: 'column'}}>
             <TouchableOpacity onPress={()=>this.setModalVisible(!this.state.modalVisible)}>
               <Text style={{padding:10, color: 'blue',fontSize:18}}> Move to Background</Text>
@@ -216,7 +217,7 @@ class GridView extends Component {
                    style={styles.pdf}/>
       )
       return(
-        <WebView source={{uri: this.state.dataPdf.stored}}/>
+        <WebView scalesPageToFit={true} hasZoom={true} maxZoom={2} source={{uri: this.state.dataPdf.stored}}/>
       )
   }
   renderIcon(rowData){
@@ -247,18 +248,17 @@ class GridView extends Component {
             temp.push(localres);
           });
           this.setState({localData:temp, needDelete:temp2});
-          let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-          this.setState({dataSource: ds.cloneWithRows(temp)});
+          this.resetListView(temp);
         }}
         name="md-checkmark" size={20} color="#4CAF50" style={styles.imageIconCheck}/>
       );
       else if (rowData.stored!=''&& rowData.minus== true)
        return(
         <Icon onPress={()=>{
-            let temp= [];
+            let temp= this.state.localData;
             this.state.localData.map(localres=>{
-              if (localres.year==rowData.year) localres.minus = false;
-              temp.push(localres);
+              if (localres.year==rowData.year) {localres.minus = false;
+              temp[localres]=localres;}
             });
             if(this.state.needDelete.length == 1) this.setState({needDelete:null});
             else{
@@ -269,8 +269,7 @@ class GridView extends Component {
               this.setState({needDelete:temp2});
             }
             this.setState({localData:temp});
-            let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-            this.setState({dataSource: ds.cloneWithRows(temp)});
+            this.resetListView(temp);
         }}
         name="minus" size={20} color="#fff" style={styles.imageIconMinus}/>
       )
@@ -357,18 +356,17 @@ class GridView extends Component {
             visible={this.state.modalVisible}
             onRequestClose={() => {alert("Modal has been closed.")}}
            >
-           <View style={styles.pdfShare}>
-             <TouchableOpacity  onPress={() =>{
-               this.setModalVisible(!this.state.modalVisible);
-               this.resetListView(this.state.localData);
-             }}>
-              <Icon1 name="ios-arrow-back" size={40} color="#696969"/>
-             </TouchableOpacity>
-             <Icon1 onPress={()=>{
-               Share.open(this.state.shareOptions).catch(err => console.log(err));
-             }} name="ios-share-outline" size={40} color="#696969" />
-           </View>
-
+           {(this.state.dataPdf.stored=='')?null:<View style={styles.pdfShare}>
+               <TouchableOpacity  onPress={() =>{
+                 this.setModalVisible(!this.state.modalVisible);
+                 this.resetListView(this.state.localData);
+               }}>
+                <Icon1 name="ios-arrow-back" size={40} color="#696969"/>
+               </TouchableOpacity>
+               <Icon1 onPress={()=>{
+                 Share.open(this.state.shareOptions).catch(err => console.log(err));
+               }} name="ios-share-outline" size={40} color="#696969" />
+             </View>}
             {this.renderPdf(this.state.dataPdf)}
           </Modal>
       </View>
@@ -443,7 +441,7 @@ const styles = StyleSheet.create({
           backgroundColor:'#C8E6C9',
           position:'absolute',
           top:0,
-          right:5,
+          right:7,
           overflow:'hidden'
         },
         android:{
@@ -457,7 +455,7 @@ const styles = StyleSheet.create({
           backgroundColor:'#C8E6C9',
           position:'absolute',
           top:0,
-          right:5
+          right:7
         }
       })
     },
