@@ -4,15 +4,20 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableHighlight,
   TouchableOpacity,
   Image,
   Modal,
   AsyncStorage,
   Platform,
   WebView,
-  Dimensions
+  Dimensions,
+  FlatList,
 } from 'react-native';
+import { connect } from 'react-redux';
+import { updateRow,updateQueue, shiftQueue,updateQueueIndex, incresDown, decresDown } from '../actions';
+import Popover from './common/popover';
+import ActionSheet from 'react-native-actionsheet';
+
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon1 from 'react-native-vector-icons/Ionicons';
 // import Modal1 from 'react-native-modalbox';
@@ -20,13 +25,22 @@ import Share from 'react-native-share';
 import * as Progress from 'react-native-progress';
 import PDFView from 'react-native-pdf-view';
 import RNFetchBlob from 'react-native-fetch-blob';
+// import _ from 'underscore';
+import axios from 'axios';
 // import ModalDropdown from 'react-native-modal-dropdown';
-const { width, height } = Dimensions.get("window");
-const halfHeight=height/2-30;
 
+import MiniRow from './MiniRow';
+
+let { width, height } = Dimensions.get("window");
+let halfHeight=height/2-30;
+let halfWidth = width/2;
+let widthButton= width-10;
+const shareOptions = ['Send via Email', 'Tweet this', 'Share via Whatsapp', 'Share on Facebook','Cancel'];
 const basePdf = 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/';
-let downloading = null;
+let downloading = [];
 const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+let downloads=[];
+// let localQueue=[];
 
 class GridView extends Component {
   componentWillMount() {
@@ -36,12 +50,7 @@ class GridView extends Component {
       needDelete:null,
       isPdfDownload: false,
       width: 0,
-      shareOptions : {
-        title: '',
-        message: '',
-        url: '',
-        subject: "Share Link", //  for email
-      },
+      shareOptions : {},
       isOpen: false,
       isDisabled: false,
       swipeToClose: true,
@@ -50,55 +59,89 @@ class GridView extends Component {
       modalVisible: false,
       startDownload:false,
       dataSource:ds,
+      pdfOn:'',
+      maxDown:3,
+      showPopover : false,
+      buttonRect: {},
+      screenSize : Dimensions.get('window')
     };
-    // this.checkStorage();
-    // this.setState({
-    //     dataSource:this.state.dataSource.cloneWithRows(this.state.localData),
-    //   });
     this.renderRow = this.renderRow.bind(this);
     // AsyncStorage.removeItem('pdfPath');
     this.checkStorage();
   }
-
+  componentWillReceiveProps(nextProps){
+    // console.log(this.props.downloadLength);
+    let flag =false;
+    if(nextProps.dataUpdateQueue.length>0&&nextProps.downloadLength<3&&downloads.length<3){
+      this.state.localData.map(localPdf=>{
+          if (nextProps.dataUpdateQueue[0].pdf==localPdf.pdf) flag=true;
+      })
+    }
+    if (flag) {
+      // console.log('ád ');
+      downloads.push(nextProps.dataUpdateQueue[0]);
+      this.downloadPdf(nextProps.dataUpdateQueue[0]);
+      this.props.shiftQueue(nextProps.dataUpdateQueue);
+      this.props.incresDown(nextProps.downloadLength);
+      // console.log(this.props.downloadLength);
+    }
+  }
+  // componentWillUpdate(nextProps,nextState){
+  //   return this.props.downloadLength!= nextProps.downloadLength
+  // }
   setModalVisible(visible) {
     this.setState({ modalVisible: visible });
+  }
+  closePopover = () => {
+      this.setState({showPopover: false});
+  }
+  sharePopoverListItem = ({item,index}) => {
+      return(
+          <TouchableOpacity>
+              <Text>{item}</Text>
+          </TouchableOpacity>
+      )
   }
   checkStorage(){
     AsyncStorage.getItem('pdfPath')
     .then(res=>{
       //  console.log(res);
       if (res == null) {
-        let temp= [
-          {year:2016, pdf: 'AR_ENG_2016.pdf', stored:'', width:0,minus:false},
-          {year:2015, pdf: 'AR_ENG_2015.pdf', stored:'', width:0,minus:false},
-          {year:2014, pdf: 'AR_ENG_2014.pdf', stored:'', width:0,minus:false},
-          {year:2013, pdf: 'AR_ENG_2013.pdf', stored:'', width:0,minus:false},
-          {year:2012, pdf: 'AR_ENG_2012.pdf', stored:'', width:0,minus:false},
-          {year:2011, pdf: 'AR_ENG_2011.pdf', stored:'', width:0,minus:false},
-          {year:2010, pdf: 'AR_ENG_2010.pdf', stored:'', width:0,minus:false},
-          {year:2009, pdf: 'AR_ENG_2009.pdf', stored:'', width:0,minus:false},
-          {year:2008, pdf: 'AR_ENG_2008.pdf', stored:'', width:0,minus:false},
-          {year:2007, pdf: 'AR_ENG_2007.pdf', stored:'', width:0,minus:false},
-          {year:2006, pdf: 'AR_ENG_2006.pdf', stored:'', width:0,minus:false},
-          {year:2005, pdf: 'AR_ENG_2005.pdf', stored:'', width:0,minus:false},
-          {year:2004, pdf: 'AR_ENG_2004.pdf', stored:'', width:0,minus:false},
-          {year:2003, pdf: 'AR_ENG_2003.pdf', stored:'', width:0,minus:false},
-          {year:2002, pdf: 'AR_ENG_2002.pdf', stored:'', width:0,minus:false},
-          {year:2001, pdf: 'AR_ENG_2001.pdf', stored:'', width:0,minus:false},
-          {year:2000, pdf: 'AR_ENG_2000.pdf', stored:'', width:0,minus:false},
-        ];
-        AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
-        this.setState({
-            // localData:temp,
-            dataSource:this.state.dataSource.cloneWithRows(temp),
-          });
+
+        axios.get('http://113.190.248.146/myirappapi2/api/v1/documentlibrary/dk-nzmb/en-gb/report/id_1')
+        .then(res=>{
+          let temp = [];
+          // console.log(res.data);
+          res.data.map(val =>{
+            let year = parseInt(val.FileName.slice(7,11));
+            temp.push({year, pdf: val.FileName, ETag:val.ETag, stored:'', width:0,minus:false});
+          })
+          AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
+          this.setState({
+              localData:temp,
+              dataSource:this.state.dataSource.cloneWithRows(temp),
+            });
+        })
       }
       else {
-        this.setState({
-            localData:JSON.parse(res),
-            dataSource:this.state.dataSource.cloneWithRows(JSON.parse(res)),
+        axios.get('http://113.190.248.146/myirappapi2/api/v1/documentlibrary/dk-nzmb/en-gb/report/id_1')
+        .then(result=>{
+          let temp = JSON.parse(res);
+          result.data.map(server =>{
+            JSON.parse(res).map(local=>{
+              if (server.ETag!=local.ETag&&server.FileName==local.pdf){
+                RNFetchBlob.fs.unlink(local.pdf).catch(err => console.log(err));
+                local.stored='';
+                temp[JSON.parse(res).findIndex(findObj => findObj.pdf==data.pdf)]=local;
+              }
+            })
           });
-        // console.log(JSON.parse(res));
+          // console.log(temp);
+          this.setState({
+              localData:temp,
+              dataSource:this.state.dataSource.cloneWithRows(temp),
+            });
+        });
       }
     });
   }
@@ -107,8 +150,8 @@ class GridView extends Component {
     this.setState({dataSource: ds.cloneWithRows(temp)});
   }
   downloadPdf = (data) => {
-
-    downloading =  RNFetchBlob.config({
+    // console.log(downloads.length);
+    downloadFile = RNFetchBlob.config({
         fileCache : true,
         path : RNFetchBlob.fs.dirs.DocumentDir + '/' +data.pdf
       }).fetch('GET', basePdf+data.pdf , {
@@ -116,34 +159,75 @@ class GridView extends Component {
           //basePdf+data.pdf
           // 'http://northeurope.blob.euroland.com/pdf/DK-NZMB/Q4_ENG_2015.pdf'
         });
-      downloading.progress((received, total) => {
-          let temp = [];
-          let width= (received/total);
-          this.state.localData.map(localres=>{
-            if (localres.pdf==data.pdf) localres.width = width;
-            temp.push(localres);
-          });
-          // console.log(width);
-          if (data.year==this.state.dataPdf.year) this.setState({width});
-          this.setState({localData:temp});
-          this.resetListView(temp);
-      })
+    downloadFile.pdf=data.pdf;
+    downloading.push(downloadFile)
+    // console.log(downloadFile);
+    // index = downloading.findIndex(findObj => findObj.taskId==downloadFile.taskId);
+    downloadFile.progress((received, total) => {
+        let width= (received/total);
+        // console.log(width);
+        index = downloads.findIndex(findObj => findObj.pdf==data.pdf);
+        // if (index!= -1)
+        downloads[index].width=width;
+        if (data.year==this.state.dataPdf.year) this.setState({width});
+        this.props.updateRow(downloads,width);
+    })
       .then((res) => {
         // console.log(res);
-
-        this.setState({dataPdf: {year:data.year, pdf:data.pdf ,stored:res.path(),width:1,minus:false},width:0  });
+// dataPdf: {year:data.year, pdf:data.pdf, ETag:data.ETag ,stored:res.path(),width:1,minus:false},
+        index = downloads.findIndex(findObj => findObj.pdf==data.pdf);
+        // console.log(index);
+        downloads.splice(index,1);
+        this.props.decresDown(this.props.downloadLength);
+        let flag= false;
+        // if (this.props.dataUpdateQueue!=[]) {
+        if(this.props.dataUpdateQueue.length>0){
+          // console.log('asd');
+          this.state.localData.map(localPdf=>{
+              if (this.props.dataUpdateQueue[0].pdf==localPdf.pdf) flag=true;
+          })
+        }
+        // console.log(this.props.dataUpdateQueue);
+        if (flag) {
+          // console.log('dkm');
+          downloads.push(this.props.dataUpdateQueue[0]);
+          this.downloadPdf(this.props.dataUpdateQueue[0]);
+          this.props.shiftQueue(this.props.dataUpdateQueue);
+          this.props.incresDown(this.props.downloadLength);
+        }
         AsyncStorage.getItem('pdfPath')
-          .then(res => {
+          .then(val => {
             let temp = [];
-            JSON.parse(res).map(localres=>{
-              // console.log(localres);
-              if (localres.year==data.year)
-              {localres.stored = this.state.dataPdf.stored; localres.width=1;}
+            let tempOpen = [];
+            JSON.parse(val).map(localres=>{
+            // this.state.localData.map(localres=>{
+              downloads.map(download=>{
+                if (localres.pdf==download.pdf) localres.width=download.width;
+                else if (localres.stored!='') localres.width=1;
+              })
+              this.props.dataUpdateQueue.map(queue=>{
+                if (localres.pdf==queue.pdf) localres.width= 0.01;
+              })
+              if (localres.pdf==data.pdf)
+              {
+                tempOpen=localres;
+                localres.stored = res.path(); localres.width=1;
+              }
               temp.push(localres);
             })
             // console.log(this.state.dataPdf.stored);
+            this.props.updateRow(temp,1);
+            if (this.state.pdfOn==data.pdf) {
+              // this.setState({width:0.99});
+              setTimeout(()=>this.setState({dataPdf:tempOpen}),500);
+              // console.log(this.state.pdfOn,data.pdf);
+              // this.setModalVisible(!this.state.modalVisible);
+              // setTimeout(()=>this.setModalVisible(!this.state.modalVisible),1500);
+            }
             this.setState({localData:temp});
             this.resetListView(temp);
+
+            this.setState({width:0});
             AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
         });
         // console.log('The file saved to ', res.path());
@@ -151,17 +235,87 @@ class GridView extends Component {
 
     }
   cancelDownload = ()=>{
-    downloading.cancel(
-      // (err, taskId)=>console.log(err,taskId)
-    );
-    let temp = this.state.localData;
-    this.state.localData.map(localres=>{
-      if (localres.year==this.state.dataPdf.year) {localres.width = 0;
-      temp[localres]=localres;}
-    });
-    this.setState({localData:temp, width:0});
-    this.resetListView(temp);
+    if (this.props.downloadLength ==3) {
+      if (this.props.dataUpdateQueue.length==0) {
+        this.props.decresDown(this.props.downloadLength);
+        index = downloading.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
+        // console.log(index);
+        downloading[index].cancel(
+          // (err, taskId)=>console.log(err,taskId)
+        );
+        let temp2 = [];
+        this.props.dataUpdate.map(localres=>{
+          if (localres.pdf==downloads[index].pdf) localres.width = 0;
+          temp2.push(localres);
+        });
+        // console.log(downloads[index],temp2);
+        downloading.splice(index,1);
+        // console.log(this.state.dataPdf);
+        this.props.updateRow(temp2,0);
+        downloads.splice(downloads[index],1);
+      }
+      else if (this.props.dataUpdateQueue.length>0) {
+        index = downloading.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
+        // console.log(index);
+        if(index == -1){
+          index2 = this.props.dataUpdateQueue.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
+          // console.log(index2);
+          let queue = this.props.dataUpdateQueue;
+          queue.splice(index2,1);
+          this.props.updateQueueIndex(queue,1);
+        }
+        else if(index != -1){
+          // console.log('loa loa');
+
+          downloading[index].cancel(
+            // (err, taskId)=>console.log(err,taskId)
+          );
+          let temp2 = [];
+          // console.log(this.props.dataUpdate);
+          this.props.dataUpdate.map(localres=>{
+            if (localres.pdf==downloading[index].pdf) localres.width = 0;
+            temp2.push(localres);
+          });
+          this.props.decresDown(this.props.downloadLength);
+          let count = this.props.downloadLength-1;
+          // console.log(this.props.downloadLength);
+          downloads.splice(index,1);
+          downloading.splice(index,1);
+          let flag =false;
+            this.state.localData.map(localPdf=>{
+                if (this.props.dataUpdateQueue[0].pdf==localPdf.pdf) {flag=true;}
+            })
+          if (flag) {
+            downloads.push(this.props.dataUpdateQueue[0]);
+            this.props.incresDown(count);
+            // console.log(this.props.downloadLength);
+            this.downloadPdf(this.props.dataUpdateQueue[0]);
+            this.props.shiftQueue(this.props.dataUpdateQueue);
+          }
+          this.props.updateRow(temp2,0);
+        }
+      }
     this.setModalVisible(!this.state.modalVisible);
+    }
+    else{
+      index = downloading.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
+      downloading[index].cancel(
+        // (err, taskId)=>console.log(err,taskId)
+      );
+      let temp2 = [];
+      // console.log(this.props.dataUpdate);
+      this.props.dataUpdate.map(localres=>{
+        if (localres.pdf==downloading[index].pdf) localres.width = 0;
+        temp2.push(localres);
+      });
+      downloads.splice(index,1);
+      downloading.splice(index,1);
+      this.props.updateRow(temp2,0);
+      if(this.props.downloadLength>0) this.props.decresDown(this.props.downloadLength);
+      this.setModalVisible(!this.state.modalVisible);
+    }
+    // console.log(this.props.dataUpdateQueue,this.props.downloadLength);
+
   }
   deleteFile = () =>{
     let temp = [];
@@ -185,7 +339,7 @@ class GridView extends Component {
     this.state.localData.map(localres=>{
        localres.minus = false;
       temp.push(localres);
-    });1
+    });
     this.setState({localData:temp, needDelete:null});
     this.resetListView(temp);
   }
@@ -194,13 +348,13 @@ class GridView extends Component {
       // console.log(this.state.width);
       return (
         <View style={styles.groundPdfDownload}>
-          <Progress.Bar style={{marginTop: halfHeight}} progress={this.state.width} width={200} />
+          <Progress.Bar style={styles.progressBar} progress={this.state.width} width={halfWidth} />
           <View style={{flexDirection: 'column'}}>
             <TouchableOpacity onPress={()=>this.setModalVisible(!this.state.modalVisible)}>
-              <Text style={{padding:10, color: 'blue',fontSize:18}}> Move to Background</Text>
+              <Text style={styles.buttonModal}> Move to Background</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={this.cancelDownload}>
-              <Text style={{padding:10, color: 'blue',fontSize:18,  textAlign: 'center',}}> Cancel</Text>
+              <Text style={styles.buttonModal}> Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -274,49 +428,7 @@ class GridView extends Component {
         name="minus" size={20} color="#fff" style={styles.imageIconMinus}/>
       )
   }
-  renderImage(width,rowData,baseUrl){
-      // console.log(rowData);
-    if(width === 0||width === 1)
-    return(
-      <TouchableOpacity onPress={()=>{
-        this.setState({dataPdf:rowData,width:0,
-          shareOptions:{title: 'Share PDF',
-        message: 'Novozymes '+rowData.pdf,
-        url: (basePdf+rowData.pdf),
-        subject: "Share Link",
-        social:"email"
-      }});
-        this.setModalVisible(!this.state.modalVisible);
-        if(rowData.stored==''){ this.downloadPdf(rowData);}
-      }}>
-      <View>
-        <Image
-          ref='thumb'
-          style={styles.thumb}
-          source={{ uri: baseUrl }}
-        />
-        <Text style={styles.text}>
-          {rowData.year}
-        </Text>
-      </View>
-      </TouchableOpacity>
-    )
-    return (
-      <View>
-      <Image
-        ref='thumb'
-        style={styles.thumb}
-        source={{ uri: baseUrl }}
-      >
-      <View style={styles.overlay}/>
-      <Progress.Bar style={{alignSelf:'center',backgroundColor:'#fff',borderRadius:0}} progress={rowData.width} width={55} />
-      </Image>
-      <Text style={styles.text}>
-        {rowData.year}
-      </Text>
-    </View>
-    )
-  }
+
   renderRow = (rowData) => {
     // console.log(rowData);
     // let baseUrl = 'http://northeurope.blob.euroland.com/mobiletools/pdfthumbnails/DK-NZMB/AR_ENG_2009_63_90_3x.jpg';
@@ -325,16 +437,130 @@ class GridView extends Component {
     // console.log(this.state.width);
     return (
       <View style={styles.row}>
-        {this.renderImage(rowData.width,rowData,baseUrl)}
+        <TouchableOpacity  onPress={()=>{
+          this.setState({dataPdf:rowData,
+            pdfOn:rowData.pdf,
+            width:0,
+            shareOptions:{title: 'Share PDF',
+          message: 'Novozymes '+rowData.pdf,
+          url: (basePdf+rowData.pdf),
+          subject: "Share Link"
+        }});
+          // console.log("hihi");
+          let Isdownload = false;
+          this.props.dataUpdate.map(val=>{
+            if (val.pdf==rowData.pdf&&val.width!=0)
+            Isdownload = true;
+          })
+          // console.log(this.props.downloadLength,Isdownload);
+          // if(Isdownload==false||rowData.width==1)
+          this.setModalVisible(!this.state.modalVisible);
+          if(rowData.stored==''&&this.props.downloadLength<3){
+             if (!Isdownload){downloads.push(rowData); this.props.incresDown(this.props.downloadLength); this.downloadPdf(rowData);}
+             this.setModalVisible(!this.state.modalVisible);
+           }
+          else if(this.props.downloadLength==3&&!Isdownload) {
+            // console.log(this.props.dataUpdateQueue.length,Isdownload);
+            if(this.props.dataUpdateQueue.length==0) this.props.updateQueue(rowData,[],0.01);
+            else if(this.props.dataUpdateQueue.length>0){
+              // console.log("leuleu");
+              let flag = false;
+              this.props.dataUpdateQueue.map(SQueue=>{
+                if(rowData.pdf==SQueue.pdf) flag=true;
+               });
+             if(!flag) this.props.updateQueue(rowData,this.props.dataUpdateQueue);
+             let temp=this.props.dataUpdateQueue;
+             downloads.map(download=>{
+               index = this.props.dataUpdateQueue.findIndex(findObj => findObj.pdf==download.pdf);
+              //  console.log(index);
+               if(index != -1) temp.splice(index, 1);
+             })
+             this.props.updateQueueIndex(temp,0.01);
+            }
+
+            //  console.log(this.props.dataUpdateQueue);
+           }
+        }}>
+          <MiniRow data={rowData} baseUrl={baseUrl}/>
+        </TouchableOpacity>
         {this.renderIcon(rowData)}
       </View>
     );
+  }
+  _actionSheethandlePress = (index) => {
+      //['Send via Email', 'Tweet this', 'Share via Whatsapp', 'Share on Facebook','Cancel']
+
+      switch(index){
+          case 0 :
+          // mail
+
+          //Linking.openURL("mailto:?subject=" + subjectEmail + "&body=" + encodeURIComponent(bodyEmail));
+
+          setTimeout(() => {
+              Share.shareSingle(Object.assign(this.state.shareOptions, {
+                "social": "email"
+              }));
+            },300);
+          break;
+          case 1 :
+          setTimeout(() => {
+              Share.shareSingle(Object.assign(this.state.shareOptions, {
+                "social": "twitter"
+              }));
+            },300);
+          //tweet
+          break;
+          case 2 :
+          setTimeout(() => {
+              Share.shareSingle(Object.assign(this.state.shareOptions, {
+                "social": "whatsapp"
+              }));
+            },300);
+          break;
+          case 3 :
+          setTimeout(() => {
+              Share.shareSingle(Object.assign(this.state.shareOptions, {
+                "social": "facebook"
+              }));
+            },300);
+          break;
+      };
+      if(this.state.showPopover){
+          this.setState({
+              showPopover: false
+          })
+      }
+      this.setModalVisible(!this.state.modalVisible);
+      // if(index !== shareOptions.length - 1)
+      //         this.props.navigator.pop();
+  }
+  // backEvent = () => {
+  //     this.props.navigator.pop();
+  // }
+  sharePopoverListItem = ({item,index}) => {
+      return(
+        <TouchableOpacity style={[styles.sharePopoverStyle,{borderBottomWidth : (index == shareOptions.length - 1) ? 0 : 1  }]} onPress={() => this._actionSheethandlePress(index)}>
+            <Text style={[styles.sharePopoverText,{color : (index == shareOptions.length - 1) ? 'red' : "#007aff" }]}>{item}</Text>
+        </TouchableOpacity>
+      )
+  }
+  shareSheetShowEvent = () => {
+
+  if(Platform.OS == 'ios' && width <= 375){
+      this.ActionSheet.show()
+      return;
+  }
+  this.shareBtn.measure((ox, oy, width, height, px, py) => {
+      this.setState({
+          showPopover : true,
+          buttonRect: {x: px , y: py+50, width: width, height: 0}
+      });
+      });
   }
   render() {
 
     return (
       <View style={{ flex: 1,backgroundColor:'#EFEFF4' }}>
-
           <ListView
             initialListSize={20}
             contentContainerStyle={styles.list}
@@ -343,32 +569,57 @@ class GridView extends Component {
           />
           {(this.state.needDelete!=null)?<View style={{ flexDirection: 'column',}}>
             <TouchableOpacity onPress={this.deleteFile}>
-              <Text style={{textAlign: 'center', fontSize:20, color:'blue', paddingVertical:15}}>Delete</Text>
+              <Text style={styles.deleteButton}>Delete</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={this.cancelAllDelete}>
-              <Text style={{textAlign: 'center', fontSize:20, color:'blue', paddingVertical:15}}>Cancel</Text>
+              <Text style={styles.deleteButton}>Cancel</Text>
             </TouchableOpacity>
           </View>:null}
+
           <Modal
             animationType={"slide"}
-            transparent={false}
+            transparent={true}
             ref="modal1"
             visible={this.state.modalVisible}
             onRequestClose={() => {alert("Modal has been closed.")}}
            >
-           {(this.state.dataPdf.stored=='')?null:<View style={styles.pdfShare}>
+           {(this.state.dataPdf.stored=='')?<View style={styles.overlayModal}></View>:<View style={styles.pdfShare}>
                <TouchableOpacity  onPress={() =>{
-                 this.setModalVisible(!this.state.modalVisible);
                  this.resetListView(this.state.localData);
+                 this.setModalVisible(!this.state.modalVisible);
                }}>
-                <Icon1 name="ios-arrow-back" size={40} color="#696969"/>
+                <Icon1 name="ios-arrow-back" size={50} color="#696969"/>
                </TouchableOpacity>
-               <Icon1 onPress={()=>{
-                 Share.open(this.state.shareOptions).catch(err => console.log(err));
-               }} name="ios-share-outline" size={40} color="#696969" />
+               <TouchableOpacity ref={b => this.shareBtn = b} onPress={()=>{
+                 this.shareSheetShowEvent();
+                //  Share.open(this.state.shareOptions).catch(err => console.log(err));
+              }}>
+               <Icon1 name="ios-share-outline" size={50} color="#696969" />
+               </TouchableOpacity>
              </View>}
             {this.renderPdf(this.state.dataPdf)}
+            <Popover
+                isVisible={this.state.showPopover}
+                fromRect={this.state.buttonRect}
+                onClose={this.closePopover}
+                placement={"bottom"}
+                displayArea={{x : 0, y : 0, width : this.state.screenSize.width, height : this.state.screenSize.height}}
+                >
+                <FlatList
+                    removeClippedSubviews={false}
+                    data={shareOptions}
+                    keyExtractor={(item,index) => index}
+                    renderItem={this.sharePopoverListItem}
+                    />
+            </Popover>
           </Modal>
+          <ActionSheet
+              ref={o => this.ActionSheet = o}
+              options={shareOptions}
+              cancelButtonIndex={shareOptions.length - 1}
+              onPress={this._actionSheethandlePress}
+              />
+
       </View>
     );
   }
@@ -398,7 +649,7 @@ const styles = StyleSheet.create({
     row: {
       justifyContent: 'center',
       padding: 5,
-      margin: 10,
+      margin:10,
       marginBottom: 5,
       width: 100,
       height: 130,
@@ -406,10 +657,11 @@ const styles = StyleSheet.create({
       borderColor: '#CCC'
     },
     pdfShare:{
-      marginTop:10,
-      padding:10,
+      paddingHorizontal:10,
+      paddingTop:25,
       flexDirection: 'row',
       justifyContent: 'space-between',
+      backgroundColor:'white'
     },
     thumb: {
       width: 65,
@@ -427,6 +679,42 @@ const styles = StyleSheet.create({
     left: 0,
     backgroundColor: 'white',
     opacity: 0.5
+    },
+    overlayModal: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(0,0,0,0.8)'
+    },
+    progressBar:{
+      marginTop: halfHeight,
+      alignSelf:'center',
+      backgroundColor:'#fff',
+      borderRadius:0,
+      borderWidth:1,
+      borderColor:'white'
+    },
+    buttonModal:{
+      width:widthButton,
+      marginVertical:5,
+      padding:10,
+      color: 'blue',
+      fontSize:18,
+      borderRadius:10,
+      textAlign: 'center',
+      backgroundColor:'white'
+    },
+    deleteButton:{
+      margin:5,
+      marginHorizontal:10,
+      paddingVertical:10,
+      textAlign: 'center',
+      fontSize:20,
+      borderRadius:10,
+      color:'blue',
+      backgroundColor:'white'
     },
     imageIconCheck:{
       ...Platform.select({
@@ -524,7 +812,20 @@ const styles = StyleSheet.create({
       height: 50,
       bottom: 0,
       backgroundColor: 'white'
+    },
+    sharePopoverStyle : {
+        alignItems:'center',
+        borderBottomWidth: 1,
+        borderColor: '#d6d6da'
+    },
+    sharePopoverText : {
+        color : "#007aff",
+        padding: 10
     }
 });
-
-export default GridView;
+const mapStateToProps = ({miniRow}) => {
+  const { dataUpdate, downloadLength, dataUpdateQueue } = miniRow;
+  // console.log(downloadLength);
+  return { dataUpdate, downloadLength, dataUpdateQueue };
+};
+export default connect(mapStateToProps,{ updateRow,updateQueue,shiftQueue,updateQueueIndex, incresDown, decresDown })(GridView);

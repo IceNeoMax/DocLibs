@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, StyleSheet,Text } from 'react-native';
+import { View, StyleSheet,Text,Platform } from 'react-native';
 import { TabViewAnimated, TabBar } from 'react-native-tab-view';
 import GridView from './GridView';
 import GridViewWithSection from './GridViewWithSection';
@@ -7,6 +7,20 @@ import ViewPdf from './ViewPdf';
 // import testGrid from './testGrid';
 
 const styles = StyleSheet.create({
+
+  tabbar: {
+    backgroundColor: '#4D4D4D',
+  },
+  tab: {
+    opacity: 1,
+    width: 100,
+    margin:10,
+    padding:-50,
+    // paddingHorizontal:-25,
+    borderRadius:10,
+    borderWidth:1,
+    borderColor:'white'
+  },
   container: {
     flex: 1,
   },
@@ -17,8 +31,8 @@ export default class TabViewExample extends Component {
   state = {
     index: 0,
     routes: [
-      { key: '1', title: 'First' },
-      { key: '2', title: 'Second' },
+      { key: '1', title: 'Annual' },
+      { key: '2', title: 'Quaterly' },
       // { key: '3', title: 'Grid' },
     ],
   };
@@ -28,7 +42,8 @@ export default class TabViewExample extends Component {
   };
 
   renderHeader = (props) => {
-    return <TabBar style={{ backgroundColor: '#696969' }} {...props} />;
+    return <TabBar {...props} pressColor="rgba(255, 64, 129, .5)" tabStyle={styles.tab}
+        style={styles.tabbar}/>;
   };
 
   renderScene = ({ route }) => {
