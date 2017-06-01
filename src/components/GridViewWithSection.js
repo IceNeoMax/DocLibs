@@ -12,7 +12,7 @@ import {
   WebView,
   Dimensions,
   FlatList,
-
+  NetInfo
 } from 'react-native';
 import { connect } from 'react-redux';
 import { updateRowSection,updateQueue, shiftQueue,updateQueueIndex, incresDown, decresDown,netChange } from '../actions';
@@ -90,7 +90,38 @@ class GridViewWithSection extends Component {
   setModalVisible(visible) {
     this.setState({ modalVisible: visible });
   }
-
+  componentDidMount() {
+    NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
+  }
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('change', this.handleConnectivityChange);
+  }
+  handleConnectivityChange = (isConnected) => {
+    console.log(isConnected);
+    // this.props.netChange(isConnected);
+    // console.log(isConnected,this.props.isConnected);
+    if (isConnected== false) {
+      // lost connection
+        let temp = this.state.localData;
+        temp.map(localres=>{
+          downloads.map(download=>{
+            if (localres.pdf==download.pdf) localres.width=0;
+          })
+          this.props.dataUpdateQueue.map(queue=>{
+            if (localres.pdf==queue.pdf) {localres.width= 0;}
+          })
+        });
+        // console.log(temp);
+        downloads=[];
+        downloading=[];
+        this.props.updateQueueIndex([],1);
+        this.props.updateRowSection([],0);
+        this.setState({
+            localData:temp,
+            dataSource:this.state.dataSource.cloneWithRowsAndSections(this.convertDataArrayToMap(temp)),
+          });
+    }
+  };
   checkStorage(){
     AsyncStorage.getItem('pdfPathSection')
     .then(res=>{
@@ -438,6 +469,9 @@ renderMiniRow=(rowData)=>{
           subject: "Share Link",
           social:"email"
         }});
+        if (!this.props.isConnected&&row.stored=='') {
+          return;
+        }
         // console.log(row);
           let Isdownload = false;
           this.props.dataUpdateSection.map(val=>{
@@ -639,7 +673,7 @@ render() {
 }
 
 const styles = StyleSheet.create({
-pdf: {
+  pdf: {
       flex:1
   },
   groundPdfDownload:{

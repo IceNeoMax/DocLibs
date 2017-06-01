@@ -69,42 +69,39 @@ class GridView extends Component {
     this.renderRow = this.renderRow.bind(this);
     // AsyncStorage.removeItem('pdfPath');
     this.checkStorage();
-    // this.handleConnectivityChange = this.handleConnectivityChange.bind(this);
-    // NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
-    // console.log(this.props.isConnected);
   }
-  // componentDidMount() {
-  //   NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
-  // }
-  // componentWillUnmount() {
-  //   NetInfo.isConnected.removeEventListener('change', this.handleConnectivityChange);
-  // }
-  // handleConnectivityChange = (isConnected) => {
-  //   console.log(isConnected);
-  //   this.props.netChange(isConnected);
-  //   // console.log(isConnected,this.props.isConnected);
-  //   if (isConnected== false) {
-  //     // lost connection
-  //       let temp = this.state.localData;
-  //       temp.map(localres=>{
-  //         downloads.map(download=>{
-  //           if (localres.pdf==download.pdf) localres.width=0;
-  //         })
-  //         this.props.dataUpdateQueue.map(queue=>{
-  //           if (localres.pdf==queue.pdf) {localres.width= 0;}
-  //         })
-  //       });
-  //       // console.log(temp);
-  //       downloads=[];
-  //       downloading=[];
-  //       this.props.updateQueueIndex([],1);
-  //       this.props.updateRow([],0);
-  //       this.setState({
-  //           localData:temp,
-  //           dataSource:ds.cloneWithRows(temp),
-  //         });
-  //   }
-  // };
+  componentDidMount() {
+    NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
+  }
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('change', this.handleConnectivityChange);
+  }
+  handleConnectivityChange = (isConnected) => {
+    // console.log(isConnected);
+    this.props.netChange(isConnected);
+    // console.log(isConnected,this.props.isConnected);
+    if (isConnected== false) {
+      // lost connection
+        let temp = this.state.localData;
+        temp.map(localres=>{
+          downloads.map(download=>{
+            if (localres.pdf==download.pdf) localres.width=0;
+          })
+          this.props.dataUpdateQueue.map(queue=>{
+            if (localres.pdf==queue.pdf) {localres.width= 0;}
+          })
+        });
+        // console.log(temp);
+        downloads=[];
+        downloading=[];
+        this.props.updateQueueIndex([],1);
+        this.props.updateRow([],0);
+        this.setState({
+            localData:temp,
+            dataSource:ds.cloneWithRows(temp),
+          });
+    }
+  };
   componentWillReceiveProps(nextProps){
     // console.log(this.props.isConnected);
     let flag =false;
@@ -486,7 +483,7 @@ class GridView extends Component {
             url: (basePdf+rowData.pdf),
             subject: "Share Link"
           }});
-          if (this.props.isConnected) {
+          if (!this.props.isConnected&&rowData.stored=='') {
             return;
           }
           let Isdownload = false;

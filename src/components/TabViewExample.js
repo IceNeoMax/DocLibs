@@ -4,7 +4,7 @@ import { TabViewAnimated, TabBar } from 'react-native-tab-view';
 import GridView from './GridView';
 import GridViewWithSection from './GridViewWithSection';
 import ViewPdf from './ViewPdf';
-import { connect } from 'react-redux';
+// import { connect } from 'react-redux';
 
 // import { netChange } from '../actions';
 // import testGrid from './testGrid';
@@ -134,4 +134,4 @@ class TabViewExample extends Component {
 //   // console.log(downloadLength);
 //   return { isConnected };
 // };
-export default connect()(TabViewExample);
+export default TabViewExample;

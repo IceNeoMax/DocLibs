@@ -9,19 +9,16 @@ import TabViewExample from './components/TabViewExample';
 
 
 class App extends Component {
-  componentWillMount(){
 
-  }
-  componentDidMount() {
-    NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
-  }
-  componentWillUnmount() {
-    NetInfo.isConnected.removeEventListener('change', this.handleConnectivityChange);
-  }
-  handleConnectivityChange = (isConnected) => {
-    // console.log('fick');
-    console.log(isConnected);
-  }
+  // componentDidMount() {
+  //   NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
+  // }
+  // componentWillUnmount() {
+  //   NetInfo.isConnected.removeEventListener('change', this.handleConnectivityChange);
+  // }
+  // handleConnectivityChange = (isConnected) => {
+  //   console.log(isConnected);
+  // }
 
   render() {
     const store = createStore(reducers, {}, applyMiddleware(ReduxThunk));
