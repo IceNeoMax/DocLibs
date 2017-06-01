@@ -6,9 +6,17 @@ import {
   SHIFT_QUEUE,
   INCRES_DOWN,
   DECRES_DOWN,
-
+  NET_CHANGE,
 } from './types';
 
+export const netChange = (isConnected) => {
+  // console.log(isConnected);
+  // isConnected = !isConnected;
+  return {
+    type: NET_CHANGE,
+    payload: isConnected
+  };
+};
 export const updateRow = (data,width) => {
   // console.log(width);
   return {

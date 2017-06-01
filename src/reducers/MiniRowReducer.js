@@ -6,6 +6,7 @@ import {
   SHIFT_QUEUE,
   INCRES_DOWN,
   DECRES_DOWN,
+  NET_CHANGE
 } from '../actions/types';
 
 const INITIAL_STATE = {
@@ -16,10 +17,14 @@ const INITIAL_STATE = {
   dataUpdateQueue:[],
   queue:0,
   downloadLength:0,
+  isConnected:null
 };
 
 export default (state = INITIAL_STATE, action) => {
   switch (action.type) {
+    case   NET_CHANGE:
+    // console.log(action.payload);
+      return { ...state, isConnected:action.payload };
     case UPDATE_ROW:
     // console.log(action.payload);
     // console.log(state.width);

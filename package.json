@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
+    "postinstall": "rndebugger-open",
     "test": "jest"
   },
   "dependencies": {
@@ -33,6 +34,7 @@
     "babel-jest": "18.0.0",
     "babel-preset-react-native": "1.9.1",
     "jest": "18.1.0",
+    "react-native-debugger-open": "^0.3.11",
     "react-test-renderer": "15.4.2"
   },
   "jest": {

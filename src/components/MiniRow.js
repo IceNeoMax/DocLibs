@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { updateRow,updateQueue } from '../actions';
 import * as Progress from 'react-native-progress';
 // import _ from 'underscore';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 class MiniRow extends Component {
   componentWillMount(){
@@ -21,7 +22,7 @@ class MiniRow extends Component {
     }
   }
   componentWillReceiveProps(){
-    // console.log(this.props.dataUpdateQueue);
+    // console.log(this.props.dataUpdate);
     index1 = this.props.dataUpdateQueue.findIndex(findObj => findObj.pdf==this.props.data.pdf);
     if (index1 == -1&&this.props.queue==1) {
        this.setState({dataWidth:0})
@@ -41,9 +42,13 @@ class MiniRow extends Component {
     )
   }
   // <Progress.Bar style={{alignSelf:'center',backgroundColor:'#fff',borderRadius:0}} progress={this.props.dataUpdate.width} width={55} />
-
+  renderIcon(){
+    if(this.state.dataWidth === 1)
+    return(
+      <Icon name="minus" size={30} color="#fff"/>
+    )
+  }
   renderImage(rowData,baseUrl){
-    // console.log(this.mozerfucker());
       // console.log(rowData);
     if(this.state.dataWidth === 0||this.state.dataWidth === 1)
     return(

@@ -5,3 +5,4 @@ export const UPDATE_QUEUE_INDEX = 'update_queue_index';
 export const SHIFT_QUEUE = 'shift_queue';
 export const INCRES_DOWN = 'incres_down';
 export const DECRES_DOWN = 'decres_down';
+export const NET_CHANGE = 'net_change';

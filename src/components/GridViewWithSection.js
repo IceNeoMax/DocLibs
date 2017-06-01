@@ -15,7 +15,7 @@ import {
 
 } from 'react-native';
 import { connect } from 'react-redux';
-import { updateRowSection,updateQueue, shiftQueue,updateQueueIndex, incresDown, decresDown } from '../actions';
+import { updateRowSection,updateQueue, shiftQueue,updateQueueIndex, incresDown, decresDown,netChange } from '../actions';
 import MiniRowSection from './MiniRowSection';
 import Popover from './common/popover';
 import ActionSheet from 'react-native-actionsheet';
@@ -77,8 +77,10 @@ class GridViewWithSection extends Component {
       })
     }
     if (flag) {
-      // console.log('ád ');
-      downloads.push(nextProps.dataUpdateQueue[0]);
+      tempQueue = this.props.dataUpdateQueue[0];
+      tempQueue.width=0.01;
+      downloads.push(tempQueue);
+      // downloads.push(nextProps.dataUpdateQueue[0]);
       this.downloadPdf(nextProps.dataUpdateQueue[0]);
       this.props.shiftQueue(nextProps.dataUpdateQueue);
       this.props.incresDown(nextProps.downloadLength);
@@ -95,10 +97,10 @@ class GridViewWithSection extends Component {
       //  console.log(res);
       if (res == null) {
         axios.get('http://113.190.248.146/myirappapi2/api/v1/documentlibrary/dk-nzmb/en-gb/report/id_2')
-        .then(res=>{
+        .then(val=>{
           let temp = [];
           // console.log(res.data);
-          res.data.map(val =>{
+          val.data.map(val =>{
             let year = parseInt(val.FileName.slice(7,11));
             temp.push({year, pdf: val.FileName, ETag:val.ETag, stored:'', width:0,minus:false});
           })
@@ -123,6 +125,17 @@ class GridViewWithSection extends Component {
             })
           });
           // console.log(temp);
+          this.setState({
+              localData:temp,
+              dataSource:this.state.dataSource.cloneWithRowsAndSections(this.convertDataArrayToMap(temp)),
+            });
+        }).catch(()=>{
+          // console.log(JSON.parse(res));
+          let temp = JSON.parse(res);
+          // JSON.parse(res).map(val =>{
+          //   // let year = parseInt(val.FileName.slice(7,11));
+          //   temp.push({year, pdf: val.FileName, ETag:val.ETag, stored:'', width:0,minus:false});
+          // })
           this.setState({
               localData:temp,
               dataSource:this.state.dataSource.cloneWithRowsAndSections(this.convertDataArrayToMap(temp)),
@@ -163,38 +176,41 @@ downloadPdf = (data) => {
         let width= (received/total);
         // let temp = this.state.localData;
         index = downloads.findIndex(findObj => findObj.pdf==data.pdf);
-        downloads[index].width=width;
+        if (downloads[index]) downloads[index].width=width;
         // console.log(width);
         if (data.pdf==this.state.dataPdf.pdf) this.setState({width});
         this.props.updateRowSection(downloads,width);
     })
     .then((res) => {
       // console.log(res.path());
-// dataPdf: {year:data.year, pdf:data.pdf,ETag:data.ETag ,stored:res.path(),width:1,minus:false},
-      // this.setState({width:0.99});
+      this.setState({width:0.99});
       index = downloads.findIndex(findObj => findObj.pdf==data.pdf);
+      downloading.splice(index,1);
       downloads.splice(index,1);
-      this.props.decresDown(this.props.downloadLength);
       let flag = false;
-      // console.log(this.props.dataUpdateQueue);
+      let tempQueue={};
       if(this.props.dataUpdateQueue.length>0){
         this.state.localData.map(localPdf=>{
             if (this.props.dataUpdateQueue[0].pdf==localPdf.pdf) flag=true;
         })
       }
       if (flag) {
-        // console.log('ád ');
-        downloads.push(this.props.dataUpdateQueue[0]);
+        tempQueue = this.props.dataUpdateQueue[0];
+        tempQueue.width=0.01;
+        downloads.push(tempQueue);
         this.downloadPdf(this.props.dataUpdateQueue[0]);
         this.props.shiftQueue(this.props.dataUpdateQueue);
         this.props.incresDown(this.props.downloadLength);
       }
+      this.props.decresDown(this.props.downloadLength);
       AsyncStorage.getItem('pdfPathSection')
         .then(val => {
           let temp = [];
           let tempOpen=[];
           JSON.parse(val).map(localres=>{
           // this.state.localData.map(localres=>{
+            if (localres.stored=='') localres.width=0;
+            if (tempQueue!={}&&tempQueue.pdf==localres.pdf) {localres.width=0.01;}
             downloads.map(download=>{
               if (localres.pdf==download.pdf) localres.width=download.width;
               else if (localres.stored!='') localres.width=1;
@@ -212,94 +228,86 @@ downloadPdf = (data) => {
           this.props.updateRowSection(temp,1);
           if (this.state.pdfOn==data.pdf) {
             setTimeout(()=>this.setState({dataPdf:tempOpen}),800);
-            // setTimeout(()=>this.setModalVisible(!this.state.modalVisible),750);
-            // setTimeout(()=>this.setModalVisible(!this.state.modalVisible),1000);
           }
           this.setState({localData:temp});
           this.resetListView(temp);
-          this.setState({width:0});
+          // this.setState({width:0});
           AsyncStorage.setItem('pdfPathSection',JSON.stringify(temp));
+          // .then(()=> this.setState({width:0}));
       });
-      // console.log('The file saved to ', res.path());
     });
 
   }
-cancelDownload = ()=>{
-  if (this.props.downloadLength ==3) {
-    if (this.props.dataUpdateQueue.length==0) {
-      this.props.decresDown(this.props.downloadLength);
-      index = downloading.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
-      downloading[index].cancel(
-        // (err, taskId)=>console.log(err,taskId)
-      );
-      let temp2 = [];
-      this.props.dataUpdateSection.map(localres=>{
-        if (localres.pdf==downloading[index].pdf) localres.width = 0;
-        temp2.push(localres);
-      });
-      downloading.splice(index,1);
-      // console.log(this.state.dataPdf);
-      this.props.updateRowSection(temp2,0);
-      downloads.splice(downloads[index],1);
+  cancelDownload = ()=>{
+    let check = false;
+    downloads.map(down=>{
+      if (down.pdf==this.state.dataPdf.pdf) check = true;
+    });
+    if(!check){
+      index2 = this.props.dataUpdateQueue.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
+      // console.log(index2);
+      let queue = this.props.dataUpdateQueue;
+      queue.splice(index2,1);
+      this.props.updateQueueIndex(queue,1);
+      this.setModalVisible(!this.state.modalVisible);
+      return;
     }
-    else if (this.props.dataUpdateQueue.length>0) {
+    else {
       index = downloading.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
-      // console.log(index);
-      if(index == -1){
-        index2 = this.props.dataUpdateQueue.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
-        let queue = this.props.dataUpdateQueue;
-        queue.splice(index2,1);
-        this.props.updateQueueIndex(queue,1);
-      }
-      else if(index != -1){
-
+      if(downloading[index]){
         downloading[index].cancel(
-          // (err, taskId)=>console.log(err,taskId)
+          (err, taskId)=>{
+            let temp2 = [];
+            if (this.props.dataUpdateSection) {
+              this.props.dataUpdateSection.map(localres=>{
+                if (localres&&localres.pdf==downloading[index].pdf) localres.width = 0;
+                temp2.push(localres);
+              });
+            }
+            let count = this.props.downloadLength-1;
+            downloads.splice(index,1);
+            downloading.splice(index,1);
+            let flag =false;
+            if(this.props.dataUpdateQueue.length>0){
+              this.state.localData.map(localPdf=>{
+                  if (this.props.dataUpdateQueue[0].pdf==localPdf.pdf) {flag=true;}
+              })
+            }
+            if (flag) {
+              tempQueue = this.props.dataUpdateQueue[0];
+              tempQueue.width=0.01;
+              downloads.push(tempQueue);
+              // downloads.push(this.props.dataUpdateQueue[0]);
+              this.props.incresDown(this.props.downloadLength);
+              this.downloadPdf(this.props.dataUpdateQueue[0]);
+              this.props.shiftQueue(this.props.dataUpdateQueue);
+            }
+            this.props.decresDown(this.props.downloadLength);
+            this.props.updateRowSection(temp2,0);
+            this.setModalVisible(!this.state.modalVisible);
+          }
         );
+      }
+      if (downloading[index]["_65"]) {
+        // console.log(downloading[index]["_65"]);
         let temp2 = [];
-        // console.log(this.props.dataUpdate);
-        this.props.dataUpdateSection.map(localres=>{
-          if (localres.pdf==downloading[index].pdf) localres.width = 0;
-          temp2.push(localres);
-        });
-        this.props.decresDown(this.props.downloadLength);
+        if (this.props.dataUpdate) {
+          this.props.dataUpdate.map(localres=>{
+            if (localres.pdf==downloads[index].pdf) localres.width = 0;
+            temp2.push(localres);
+          });
+        }
         let count = this.props.downloadLength-1;
         downloads.splice(index,1);
         downloading.splice(index,1);
-        let flag =false;
-          this.state.localData.map(localPdf=>{
-              if (this.props.dataUpdateQueue[0].pdf==localPdf.pdf) flag=true;
-          })
-        if (flag) {
-          downloads.push(this.props.dataUpdateQueue[0]);
-          this.props.shiftQueue(this.props.dataUpdateQueue);
-          this.props.incresDown(count);
-          this.downloadPdf(this.props.dataUpdateQueue[0]);
-        }
+        this.props.decresDown(this.props.downloadLength);
         this.props.updateRowSection(temp2,0);
+        // console.log(this.props.dataUpdate);
+        this.setModalVisible(!this.state.modalVisible);
       }
     }
-    this.setModalVisible(!this.state.modalVisible);
   }
-  else{
-    index = downloading.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
-    downloading[index].cancel(
-      // (err, taskId)=>console.log(err,taskId)
-    );
-    let temp2 = [];
-    this.props.dataUpdateSection.map(localres=>{
-      if (localres.pdf==downloading[index].pdf) localres.width = 0;
-      temp2.push(localres);
-    });
-    downloads.splice(index,1);
-    downloading.splice(index,1);
-    // console.log(temp2);
-    this.props.updateRowSection(temp2,0);
-    if(this.props.downloadLength>0) this.props.decresDown(this.props.downloadLength);
-    // console.log(this.props.downloadLength,downloads.length, downloads);
-    this.setModalVisible(!this.state.modalVisible);
-  }
-}
+
 deleteFile = () =>{
   let temp = [];
   this.state.needDelete.map(del=>{
@@ -440,7 +448,13 @@ renderMiniRow=(rowData)=>{
           this.setModalVisible(!this.state.modalVisible);
           if(row.stored==''&&this.props.downloadLength<3){
             this.setModalVisible(!this.state.modalVisible);
-            if (!Isdownload){ downloads.push(row); this.props.incresDown(this.props.downloadLength); this.downloadPdf(row);}
+            if (!Isdownload){
+              let tempRow = row;
+              tempRow.width=0.01;
+              downloads.push(tempRow);
+              this.props.incresDown(this.props.downloadLength);
+              this.downloadPdf(row);
+            }
            }
            else if(this.props.downloadLength==3) {
              if(this.props.dataUpdateQueue.length==0&&!Isdownload) {this.props.updateQueue(row,[],0.01);}
@@ -725,6 +739,7 @@ pdf: {
     ...Platform.select({
       ios:{
         alignSelf:'center',
+        margin:5,
         width:20,
         height:20,
         paddingLeft:2,
@@ -737,6 +752,7 @@ pdf: {
       },
       android:{
         alignSelf:'center',
+        margin:5,
         width:20,
         height:20,
         paddingLeft:2,
@@ -752,6 +768,7 @@ pdf: {
     ...Platform.select({
       ios:{
         alignSelf:'center',
+        margin:5,
         width:20,
         height:20,
         borderRadius:10 ,
@@ -765,6 +782,7 @@ pdf: {
       },
       android:{
         alignSelf:'center',
+        margin:5,
         width:20,
         height:20,
         borderRadius:20 ,
@@ -805,17 +823,20 @@ pdf: {
     backgroundColor: 'white'
   },
   sharePopoverStyle : {
+      width:270,
+      padding:15,
       alignItems:'center',
       borderBottomWidth: 1,
       borderColor: '#d6d6da'
   },
   sharePopoverText : {
+      fontSize:16,
       color : "#007aff",
       padding: 10
   }
 });
 const mapStateToProps = ({ miniRow }) => {
-  const { dataUpdateSection,widthSection, downloadLength, dataUpdateQueue } = miniRow;
-  return { dataUpdateSection,widthSection, downloadLength, dataUpdateQueue };
+  const { dataUpdateSection,widthSection, downloadLength, dataUpdateQueue,isConnected } = miniRow;
+  return { dataUpdateSection,widthSection, downloadLength, dataUpdateQueue,isConnected };
 };
-export default connect(mapStateToProps,{ updateRowSection,updateQueue, shiftQueue,updateQueueIndex, incresDown, decresDown })(GridViewWithSection);
+export default connect(mapStateToProps,{ updateRowSection,updateQueue, shiftQueue,updateQueueIndex, incresDown, decresDown,netChange })(GridViewWithSection);

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View } from 'react-native';
+import { View, NetInfo } from 'react-native';
 import { Provider } from 'react-redux';
 import ReduxThunk from 'redux-thunk';
 import { createStore, applyMiddleware } from 'redux';
@@ -9,8 +9,18 @@ import TabViewExample from './components/TabViewExample';
 
 
 class App extends Component {
-  componentWillMount() {
+  componentWillMount(){
 
+  }
+  componentDidMount() {
+    NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
+  }
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('change', this.handleConnectivityChange);
+  }
+  handleConnectivityChange = (isConnected) => {
+    // console.log('fick');
+    console.log(isConnected);
   }
 
   render() {
