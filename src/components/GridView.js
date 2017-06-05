@@ -15,7 +15,7 @@ import {
   NetInfo
 } from 'react-native';
 import { connect } from 'react-redux';
-import { updateRow,updateQueue, shiftQueue,updateQueueIndex, incresDown, decresDown,netChange } from '../actions';
+import { updateRow,updateQueue, shiftQueue,updateQueueIndex, incresDown, decresDown,netChange,resetLength } from '../actions';
 import Popover from './common/popover';
 import ActionSheet from 'react-native-actionsheet';
 
@@ -96,6 +96,7 @@ class GridView extends Component {
         downloading=[];
         this.props.updateQueueIndex([],1);
         this.props.updateRow([],0);
+        this.props.resetLength(0);
         this.setState({
             localData:temp,
             dataSource:ds.cloneWithRows(temp),
@@ -178,10 +179,6 @@ class GridView extends Component {
             });
         }).catch(()=>{
           let temp = JSON.parse(res);
-          // JSON.parse(res).map(val =>{
-          //   let year = parseInt(val.FileName.slice(7,11));
-          //   temp.push({year, pdf: val.FileName, ETag:val.ETag, stored:'', width:0,minus:false});
-          // })
           this.setState({
               localData:temp,
               dataSource:this.state.dataSource.cloneWithRows(JSON.parse(res)),
@@ -199,7 +196,7 @@ class GridView extends Component {
     downloadFile = RNFetchBlob.config({
         // fileCache : true,
         path : RNFetchBlob.fs.dirs.DocumentDir + '/' +data.pdf,
-        overwrite: false,
+        // overwrite: false,
       }).fetch('GET', basePdf+data.pdf , {
           //some headers ..
           //basePdf+data.pdf
@@ -216,33 +213,30 @@ class GridView extends Component {
         this.props.updateRow(downloads,width);
     })
       .then((res) => {
-        index = downloads.findIndex(findObj => findObj.pdf==data.pdf);
-        downloads.splice(index,1);
-        downloading.splice(index,1);
-        let flag= false;
-        let tempQueue={};
-        if(this.props.dataUpdateQueue.length>0){
-          this.state.localData.map(localPdf=>{
-              if (this.props.dataUpdateQueue[0].pdf==localPdf.pdf) flag=true;
-          })
-        }
-        if (flag) {
-          tempQueue = this.props.dataUpdateQueue[0];
-          tempQueue.width=0.01;
-          downloads.push(tempQueue);
-          this.downloadPdf(this.props.dataUpdateQueue[0]);
-          this.props.shiftQueue(this.props.dataUpdateQueue);
-          this.props.incresDown(this.props.downloadLength);
-        }
-        this.props.decresDown(this.props.downloadLength);
         AsyncStorage.getItem('pdfPath')
           .then(val => {
-            // console.log(tempQueue!={});
-            // let handleDownloaded = this.props.dataUpdateQueue;
+            index = downloads.findIndex(findObj => findObj.pdf==data.pdf);
+            downloads.splice(index,1);
+            downloading.splice(index,1);
+            let flag= false;
+            let tempQueue={};
+            if(this.props.dataUpdateQueue.length>0){
+              this.state.localData.map(localPdf=>{
+                  if (this.props.dataUpdateQueue[0].pdf==localPdf.pdf) flag=true;
+              })
+            }
+            if (flag) {
+              tempQueue = this.props.dataUpdateQueue[0];
+              tempQueue.width=0.01;
+              downloads.push(tempQueue);
+              this.downloadPdf(this.props.dataUpdateQueue[0]);
+              this.props.shiftQueue(this.props.dataUpdateQueue);
+              this.props.incresDown(this.props.downloadLength);
+            }
+            this.props.decresDown(this.props.downloadLength);
             let temp = [];
             let tempOpen = [];
             JSON.parse(val).map(localres=>{
-            // this.state.localData.map(localres=>{
               if (localres.stored=='') localres.width=0;
               if (tempQueue!={}&&tempQueue.pdf==localres.pdf) {localres.width=0.01;}
               downloads.map(download=>{
@@ -260,7 +254,6 @@ class GridView extends Component {
               }
               temp.push(localres);
             })
-            // console.log(this.state.dataPdf.stored);
             this.props.updateRow(temp,1);
             if (this.state.pdfOn==data.pdf) {
               setTimeout(()=>this.setState({dataPdf:tempOpen}),500);
@@ -270,14 +263,9 @@ class GridView extends Component {
             // this.setState({width:0});
             AsyncStorage.setItem('pdfPath',JSON.stringify(temp));
         });
-        // console.log('The file saved to ', res.path());
       })
       .catch((err)=>{
         console.log(err);
-        // downloads = [];
-        // downloading = [];
-        // this.props.updateRow(downloads,0);
-        // this.props.updateQueueIndex([],0);
       });
 
     }
@@ -302,18 +290,17 @@ class GridView extends Component {
     else {
       index = downloads.findIndex(findObj => findObj.pdf==this.state.dataPdf.pdf);
       // console.log(downloading[index]["_65"]);
-      // console.log(downloads[index]);
+      // console.log(index);
       if(downloads[index]){
         downloading[index].cancel(
           (err, taskId)=>{
             let temp2 = [];
             if (this.props.dataUpdate) {
               this.props.dataUpdate.map(localres=>{
-                if (localres.pdf==downloads[index].pdf) localres.width = 0;
+                if (localres.pdf==downloads[index].pdf) {console.log(localres,downloads[index]); localres.width = 0;}
                 temp2.push(localres);
               });
             }
-            let count = this.props.downloadLength-1;
             downloads.splice(index,1);
             downloading.splice(index,1);
             let flag =false;
@@ -335,23 +322,6 @@ class GridView extends Component {
             this.setModalVisible(!this.state.modalVisible);
           }
         );
-      }
-      if (downloading[index]["_65"]) {
-        // console.log(downloading[index]["_65"]);
-        let temp2 = [];
-        if (this.props.dataUpdate) {
-          this.props.dataUpdate.map(localres=>{
-            if (localres.pdf==downloads[index].pdf) localres.width = 0;
-            temp2.push(localres);
-          });
-        }
-        let count = this.props.downloadLength-1;
-        downloads.splice(index,1);
-        downloading.splice(index,1);
-        this.props.decresDown(this.props.downloadLength);
-        this.props.updateRow(temp2,0);
-        // console.log(this.props.dataUpdate);
-        this.setModalVisible(!this.state.modalVisible);
       }
     }
   }
@@ -475,15 +445,16 @@ class GridView extends Component {
     return (
       <View style={styles.row}>
         <TouchableOpacity  onPress={()=>{
+          // console.log(rowData,this.props.dataUpdate);
           this.setState({dataPdf:rowData,
-            pdfOn:rowData.pdf,
             width:0,
+            pdfOn:rowData.pdf,
             shareOptions:{title: 'Share PDF',
             message: 'Novozymes '+rowData.pdf,
             url: (basePdf+rowData.pdf),
             subject: "Share Link"
           }});
-          if (!this.props.isConnected&&rowData.stored=='') {
+          if (this.props.isConnected==false&&rowData.stored=='') {
             return;
           }
           let Isdownload = false;
@@ -496,6 +467,7 @@ class GridView extends Component {
           this.setModalVisible(!this.state.modalVisible);
           if(rowData.stored==''&&this.props.downloadLength<3){
              if (!Isdownload){
+              //  console.log("download start");
                let tempRow = rowData;
                tempRow.width=0.01;
                downloads.push(tempRow);
@@ -507,8 +479,8 @@ class GridView extends Component {
              this.setModalVisible(!this.state.modalVisible);
            }
           else if(this.props.downloadLength==3&&!Isdownload) {
-            // console.log(this.props.dataUpdateQueue.length,Isdownload);
-            if(this.props.dataUpdateQueue.length==0) this.props.updateQueue(rowData,[],0.01);
+            if (rowData.stored!='') return;
+            if(this.props.dataUpdateQueue.length==0) {this.props.updateQueue(rowData,[],0.01); }
             else if(this.props.dataUpdateQueue.length>0){
               // console.log("leuleu");
               let flag = false;
@@ -607,6 +579,7 @@ class GridView extends Component {
 
     return (
       <View style={{ flex: 1,backgroundColor:'#EFEFF4' }}>
+
           <ListView
             initialListSize={20}
             contentContainerStyle={styles.list}
@@ -881,4 +854,4 @@ const mapStateToProps = ({miniRow}) => {
   // console.log(downloadLength);
   return { dataUpdate, downloadLength, dataUpdateQueue, isConnected };
 };
-export default connect(mapStateToProps,{ updateRow,updateQueue,shiftQueue,updateQueueIndex, incresDown, decresDown,netChange })(GridView);
+export default connect(mapStateToProps,{ updateRow,updateQueue,shiftQueue,updateQueueIndex, incresDown, decresDown,netChange,resetLength })(GridView);

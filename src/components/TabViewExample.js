@@ -4,9 +4,9 @@ import { TabViewAnimated, TabBar } from 'react-native-tab-view';
 import GridView from './GridView';
 import GridViewWithSection from './GridViewWithSection';
 import ViewPdf from './ViewPdf';
-// import { connect } from 'react-redux';
+import { connect } from 'react-redux';
 
-// import { netChange } from '../actions';
+import { netChange } from '../actions';
 // import testGrid from './testGrid';
 
 const styles = StyleSheet.create({
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
   tab: {
     justifyContent: 'center',
     borderColor: '#eee',
-    borderRadius: 6,
+    borderRadius: 4,
     margin: 5
   },
   container: {
@@ -25,39 +25,51 @@ const styles = StyleSheet.create({
   },
   page: { flex: 1 },
   tabsContainer: {
+    padding:5,
+    paddingLeft:25,
     flexDirection: 'row',
     backgroundColor: '#4D4D4D',
   },
   tabTextStyle : {
-      fontSize : 14,
+      fontSize : 12,
       color: '#fff',
-      padding: 8,
+      padding: 6,
       backgroundColor: 'transparent'
   },
+  offlineStatus:{
+    backgroundColor: '#ffeead'
+  },
+  offlineText:{
+    textAlign:'center',
+
+  }
 });
 
 class TabViewExample extends Component {
-  //   componentWillMount() {
-  //    NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
-  //  }
-   //
-  //  componentWillUnmount() {
-  //    NetInfo.isConnected.removeEventListener('change', this.handleConnectivityChange);
-  //  }
+    componentWillMount() {
+      this.state = {
+        offline:null,
+        index: 0,
+        routes: [
+          { key: '1', title: 'ANNUAL' },
+          { key: '2', title: 'QUARTERLY' },
+          // { key: '3', title: 'Grid' },
+        ],
+      };
+     NetInfo.isConnected.addEventListener('change', this.handleConnectivityChange);
+   }
 
-  //  handleConnectivityChange = (isConnected) => {
-  //   //  console.log(isConnected);
-  //    this.props.netChange(isConnected);
-  //   //  console.log(this.props.isConnected);
-  //  };
-  state = {
-    index: 0,
-    routes: [
-      { key: '1', title: 'ANNUAL' },
-      { key: '2', title: 'QUARTERLY' },
-      // { key: '3', title: 'Grid' },
-    ],
-  };
+   componentWillUnmount() {
+     NetInfo.isConnected.removeEventListener('change', this.handleConnectivityChange);
+   }
+
+   handleConnectivityChange = (isConnected) => {
+    //  console.log(isConnected);
+    //  this.props.netChange(isConnected);
+    this.setState({ offline:isConnected})
+     console.log(this.state.offline);
+   };
+
   // setBorder(index){
   //   this.setState({ index });
   // }
@@ -81,8 +93,13 @@ class TabViewExample extends Component {
     )
 
     return (
-      <View style={styles.tabsContainer}>
-        {tabView}
+      <View>
+        <View style={styles.tabsContainer}>
+          {tabView}
+        </View>
+        <View style={styles.offlineStatus}>
+        {this.state.offline?null:<Text style={styles.offlineText}t>No internet connection</Text>}
+        </View>
       </View>
     )
     // return <TabBar {...props}
@@ -129,9 +146,8 @@ class TabViewExample extends Component {
     );
   }
 }
-// const mapStateToProps = ({miniRow}) => {
-//   const { isConnected } = miniRow;
-//   // console.log(downloadLength);
-//   return { isConnected };
-// };
-export default TabViewExample;
+const mapStateToProps = ({miniRow}) => {
+  const { isConnected } = miniRow;
+  return { isConnected };
+};
+export default connect(mapStateToProps,{netChange })(TabViewExample);

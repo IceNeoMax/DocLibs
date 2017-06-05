@@ -7,8 +7,14 @@ import {
   INCRES_DOWN,
   DECRES_DOWN,
   NET_CHANGE,
+  RESET_LENGTH,
 } from './types';
-
+export const resetLength = (length) => {
+  return {
+    type: RESET_LENGTH,
+    payload: length
+  };
+};
 export const netChange = (isConnected) => {
   // console.log(isConnected);
   // isConnected = !isConnected;

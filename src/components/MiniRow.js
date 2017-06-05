@@ -59,7 +59,7 @@ class MiniRow extends Component {
           source={{ uri: baseUrl }}
         />
         <Text style={styles.text}>
-          {rowData.year}
+          {rowData.pdf.slice(0,2)} {rowData.year}
         </Text>
       </View>
     )
@@ -75,7 +75,7 @@ class MiniRow extends Component {
       {this.renderProgressbar()}
       </Image>
       <Text style={styles.text}>
-        {rowData.year}
+        {rowData.pdf.slice(0,2)} {rowData.year}
       </Text>
     </View>
     )
